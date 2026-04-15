@@ -159,6 +159,15 @@
   }
   .save-btn:active { opacity: 0.7; transform: scale(0.97); }
 
+  .confirm-btn {
+    padding: 8px 12px; font-size: 16px; font-weight: 700; line-height: 1;
+    border: 0.5px solid var(--green); border-radius: var(--radius-sm);
+    background: var(--green); color: #fff;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .confirm-btn:active { opacity: 0.7; transform: scale(0.97); }
+
   .corrected-row { padding: 0 12px 10px; font-size: 13px; color: var(--blue); font-style: italic; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
   /* ACTIONS */
@@ -524,6 +533,21 @@ async function saveCorrection(id) {
   }
 }
 
+async function confirmCorrect(id) {
+  const e = entries.find(e => e.id === id);
+  if (!e) return;
+  e.corrected = e.heard;   // mark as correct-as-heard
+  saveLocal();
+  renderAll();
+  if (typeof id === 'string' && !id.startsWith('t_')) {
+    try {
+      await updateDoc(doc(db, 'entries', id), { corrected: e.heard });
+    } catch (err) {
+      console.warn('[firebase] confirmCorrect failed', err);
+    }
+  }
+}
+
 function renderAll() {
   updateStats();
   renderEntries();
@@ -536,6 +560,11 @@ function renderEntries() {
   wrap.style.display = 'block';
   list.innerHTML = entries.map(e => {
     const bc = e.conf >= 70 ? 'hi' : e.conf >= 45 ? 'mid' : 'lo';
+    if (e.corrected && e.corrected === e.heard) {
+      return `<div class="entry">
+        <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge hi">✓ correct</span></div>
+      </div>`;
+    }
     if (e.corrected) {
       return `<div class="entry">
         <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge lo">engine</span></div>
@@ -547,6 +576,7 @@ function renderEntries() {
       <div class="entry-correct">
         <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection('${e.id}');this.blur();}"/>
         <button class="save-btn" onclick="saveCorrection('${e.id}')">save</button>
+        <button class="confirm-btn" title="Mark as correct — no typing needed" onclick="confirmCorrect('${e.id}')">✓</button>
       </div>
     </div>`;
   }).join('');
@@ -630,6 +660,7 @@ function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 // Expose functions to inline onclick/onchange handlers (required under type="module")
 window.toggleListen = toggleListen;
 window.saveCorrection = saveCorrection;
+window.confirmCorrect = confirmCorrect;
 window.exportJSON = exportJSON;
 window.exportCSV = exportCSV;
 window.clearAll = clearAll;
