@@ -29,6 +29,8 @@
     --red-bg: #FCEBEB;
     --blue: #185FA5;
     --blue-bg: #E6F1FB;
+    --purple: #6b3dbf;
+    --purple-bg: #efe6fb;
     --radius: 12px;
     --radius-sm: 8px;
   }
@@ -48,6 +50,8 @@
       --amber-bg: #2e2000;
       --red-bg: #2e0a0a;
       --blue-bg: #0a1e35;
+      --purple: #b99ce8;
+      --purple-bg: #2a1d3f;
     }
   }
 
@@ -140,6 +144,7 @@
   .badge.mid { background: var(--amber-bg); color: var(--amber); }
   .badge.lo { background: var(--red-bg); color: var(--red); }
   .badge.saved { background: var(--blue-bg); color: var(--blue); }
+  .badge.learned { background: var(--purple-bg); color: var(--purple); }
 
   .entry-correct { padding: 4px 10px 10px; display: flex; gap: 6px; }
   .correct-input {
@@ -279,6 +284,7 @@
     <div class="actions">
       <button class="action-btn" onclick="exportJSON()">export JSON</button>
       <button class="action-btn" onclick="exportCSV()">export CSV</button>
+      <button class="action-btn" onclick="openLearnedModal()" id="learnedBtn">learned</button>
       <button class="action-btn" onclick="clearAll()">clear all</button>
     </div>
 
@@ -311,12 +317,24 @@
   </div>
 </div>
 
+<!-- Learned Corrections Modal -->
+<div class="modal-bg" id="learnedModal">
+  <div class="modal">
+    <h3>Learned corrections</h3>
+    <p style="font-size:13px; color:var(--text3); margin-bottom:12px; line-height:1.5;">
+      When you type a correction, the app remembers it. Next time the engine hears the same thing, it auto-applies your correction.
+    </p>
+    <div id="learnedList" style="max-height:55vh; overflow-y:auto; margin-bottom:1rem; border-top:0.5px solid var(--border);"></div>
+    <button class="modal-close" onclick="closeLearnedModal()">Done</button>
+  </div>
+</div>
+
 <script type="module">
 // ---- Firebase setup ----
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
-  getDocs, query, orderBy, serverTimestamp
+  getDoc, setDoc, getDocs, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -341,12 +359,14 @@ if (!SR) {
 
 let rec, listening = false, waveTimer;
 let entries = loadLocal();
+let learnedMap = loadLearnedLocal();
 let currentLang = 'en-US';
 const wbEls = document.querySelectorAll('.wb');
 const baseH = [6,11,18,8,22,13,7,16,10];
 
 renderAll();
 loadFromCloud();
+loadLearnedFromCloud();
 
 function animWave() {
   waveTimer = setInterval(() => {
@@ -494,10 +514,14 @@ async function addEntry(text, conf) {
     const last = entries[0];
     if (last.heard === text && Date.now() - Date.parse(last.ts) < 1500) return;
   }
+  // Apply any learned correction for this phrase
+  const norm = normalize(text);
+  const learned = learnedMap[norm];
   const entry = {
     id: 't_' + Date.now(),          // temporary local id until Firestore assigns one
     heard: text,
-    corrected: null,
+    corrected: learned ? learned.to : null,
+    wasLearned: !!learned,
     conf: Math.round((conf || 0) * 100),
     lang: currentLang,
     ts: new Date().toISOString()
@@ -510,6 +534,7 @@ async function addEntry(text, conf) {
     const ref = await addDoc(entriesCol, {
       heard: entry.heard,
       corrected: entry.corrected,
+      wasLearned: entry.wasLearned,
       conf: entry.conf,
       lang: entry.lang,
       ts: entry.ts,
@@ -520,6 +545,11 @@ async function addEntry(text, conf) {
     renderAll();
   } catch (err) {
     console.warn('[firebase] addEntry failed — kept locally only', err);
+  }
+  if (learned) {
+    learned.count = (learned.count || 1) + 1;
+    learned.lastUsed = new Date().toISOString();
+    persistLearnedMap();
   }
 }
 
@@ -538,6 +568,8 @@ async function saveCorrection(id) {
       console.warn('[firebase] saveCorrection failed', err);
     }
   }
+  // Remember this mapping so future identical phrases auto-correct
+  if (e && val !== e.heard) learnPattern(e.heard, val);
 }
 
 async function deleteEntry(id) {
@@ -581,6 +613,12 @@ function renderEntries() {
   list.innerHTML = entries.map(e => {
     const bc = e.conf >= 70 ? 'hi' : e.conf >= 45 ? 'mid' : 'lo';
     const delBtn = `<button class="del-btn" title="Delete this entry" onclick="deleteEntry('${e.id}')">×</button>`;
+    if (e.wasLearned && e.corrected) {
+      return `<div class="entry">
+        <div class="entry-top"><span class="entry-heard">${esc(e.corrected)}</span><span class="badge learned">✨ learned</span>${delBtn}</div>
+        <div class="corrected-row"><span class="badge saved">auto</span> engine heard: "${esc(e.heard)}"</div>
+      </div>`;
+    }
     if (e.corrected && e.corrected === e.heard) {
       return `<div class="entry">
         <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge hi">✓ correct</span>${delBtn}</div>
@@ -610,6 +648,9 @@ function updateStats() {
   document.getElementById('sTotal').textContent = total;
   document.getElementById('sCorrected').textContent = corrected;
   document.getElementById('sAccuracy').textContent = accuracy !== null ? accuracy + '%' : '—';
+  const learnedN = Object.keys(learnedMap).length;
+  const lb = document.getElementById('learnedBtn');
+  if (lb) lb.textContent = learnedN ? `learned (${learnedN})` : 'learned';
 }
 
 function exportJSON() {
@@ -666,6 +707,101 @@ async function loadFromCloud() {
   }
 }
 
+// ---- Learned corrections (Level 1 auto-correct) ----
+function normalize(s) {
+  return (s || '').toLowerCase().trim().replace(/[.,!?;:"']+$/g, '').replace(/\s+/g, ' ');
+}
+
+function learnPattern(fromText, toText) {
+  const key = normalize(fromText);
+  if (!key || !toText) return;
+  const existing = learnedMap[key];
+  learnedMap[key] = {
+    from: fromText,
+    to: toText,
+    count: (existing && existing.count) ? existing.count + 1 : 1,
+    ts: new Date().toISOString()
+  };
+  persistLearnedMap();
+  renderAll();
+}
+
+function saveLearnedLocal() {
+  try { localStorage.setItem('cv_learned', JSON.stringify(learnedMap)); } catch(_) {}
+}
+function loadLearnedLocal() {
+  try { return JSON.parse(localStorage.getItem('cv_learned') || '{}'); } catch(_) { return {}; }
+}
+async function persistLearnedMap() {
+  saveLearnedLocal();
+  try {
+    await setDoc(doc(db, 'corrections', 'map'), {
+      entries: learnedMap,
+      updatedAt: serverTimestamp()
+    });
+  } catch (err) {
+    console.warn('[firebase] persistLearnedMap failed — saved locally', err);
+  }
+}
+async function loadLearnedFromCloud() {
+  try {
+    const snap = await getDoc(doc(db, 'corrections', 'map'));
+    if (snap.exists()) {
+      learnedMap = snap.data().entries || {};
+      saveLearnedLocal();
+      renderAll();
+    }
+  } catch (err) {
+    console.warn('[firebase] loadLearnedFromCloud failed — using local cache', err);
+  }
+}
+
+function openLearnedModal() {
+  renderLearnedList();
+  document.getElementById('learnedModal').classList.add('open');
+}
+function closeLearnedModal() {
+  document.getElementById('learnedModal').classList.remove('open');
+}
+function renderLearnedList() {
+  const list = document.getElementById('learnedList');
+  list.innerHTML = '';
+  const keys = Object.keys(learnedMap).sort((a,b) => (learnedMap[b].count||0) - (learnedMap[a].count||0));
+  if (!keys.length) {
+    const p = document.createElement('p');
+    p.style.cssText = 'color:var(--text3); font-size:14px; text-align:center; padding:1.5rem 0.5rem;';
+    p.textContent = 'No learned corrections yet. Type a correction on any phrase and the app will remember it.';
+    list.appendChild(p);
+    return;
+  }
+  keys.forEach(k => {
+    const m = learnedMap[k];
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:12px 4px; border-bottom:0.5px solid var(--border); display:flex; align-items:center; gap:8px;';
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1; min-width:0;';
+    info.innerHTML = `
+      <div style="font-size:13px; color:var(--text3); text-decoration:line-through; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.from || k)}</div>
+      <div style="font-size:14px; color:var(--text); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">→ ${esc(m.to)}</div>
+      <div style="font-size:11px; color:var(--text3); margin-top:2px;">applied ${m.count || 1}×</div>
+    `;
+    const del = document.createElement('button');
+    del.className = 'del-btn';
+    del.textContent = '×';
+    del.title = 'Forget this correction';
+    del.onclick = () => deleteLearned(k);
+    row.appendChild(info);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+async function deleteLearned(key) {
+  delete learnedMap[key];
+  await persistLearnedMap();
+  renderLearnedList();
+  renderAll();
+}
+
 function setLang(val) {
   currentLang = val;
   const labels = { 'en-US':'EN', 'en-GB':'EN-GB', 'es-US':'ES', 'es-ES':'ES', 'pt-BR':'PT', 'fr-FR':'FR', 'de-DE':'DE', 'zh-CN':'ZH', 'ar-SA':'AR', 'hi-IN':'HI', 'ja-JP':'JA' };
@@ -683,6 +819,8 @@ window.toggleListen = toggleListen;
 window.saveCorrection = saveCorrection;
 window.confirmCorrect = confirmCorrect;
 window.deleteEntry = deleteEntry;
+window.openLearnedModal = openLearnedModal;
+window.closeLearnedModal = closeLearnedModal;
 window.exportJSON = exportJSON;
 window.exportCSV = exportCSV;
 window.clearAll = clearAll;
