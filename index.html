@@ -295,7 +295,28 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+// ---- Firebase setup ----
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  getDocs, query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDaOQmOgvNo6lhfDHwaOPQIB9ggeq2UnLo",
+  authDomain: "deafvoice-d8410.firebaseapp.com",
+  projectId: "deafvoice-d8410",
+  storageBucket: "deafvoice-d8410.firebasestorage.app",
+  messagingSenderId: "550051421759",
+  appId: "1:550051421759:web:9f763d8aeb42357fbd228a"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const entriesCol = collection(db, 'entries');
+
+// ---- App state ----
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!SR) {
   document.getElementById('noSupport').style.display = 'block';
@@ -303,12 +324,13 @@ if (!SR) {
 }
 
 let rec, listening = false, waveTimer;
-let entries = loadData();
+let entries = loadLocal();
 let currentLang = 'en-US';
 const wbEls = document.querySelectorAll('.wb');
 const baseH = [6,11,18,8,22,13,7,16,10];
 
 renderAll();
+loadFromCloud();
 
 function animWave() {
   waveTimer = setInterval(() => {
@@ -382,22 +404,52 @@ function setConf(c) {
   document.getElementById('confPct').textContent = pct + '%';
 }
 
-function addEntry(text, conf) {
+async function addEntry(text, conf) {
   if (!text) return;
-  entries.unshift({ id: Date.now(), heard: text, corrected: null, conf: Math.round((conf || 0) * 100), lang: currentLang, ts: new Date().toISOString() });
+  const entry = {
+    id: 't_' + Date.now(),          // temporary local id until Firestore assigns one
+    heard: text,
+    corrected: null,
+    conf: Math.round((conf || 0) * 100),
+    lang: currentLang,
+    ts: new Date().toISOString()
+  };
+  entries.unshift(entry);
   if (entries.length > 500) entries.pop();
-  saveData();
+  saveLocal();
   renderAll();
+  try {
+    const ref = await addDoc(entriesCol, {
+      heard: entry.heard,
+      corrected: entry.corrected,
+      conf: entry.conf,
+      lang: entry.lang,
+      ts: entry.ts,
+      createdAt: serverTimestamp()
+    });
+    entry.id = ref.id;
+    saveLocal();
+    renderAll();
+  } catch (err) {
+    console.warn('[firebase] addEntry failed — kept locally only', err);
+  }
 }
 
-function saveCorrection(id) {
+async function saveCorrection(id) {
   const inp = document.getElementById('inp_' + id);
   const val = inp ? inp.value.trim() : '';
   if (!val) return;
   const e = entries.find(e => e.id === id);
   if (e) { e.corrected = val; }
-  saveData();
+  saveLocal();
   renderAll();
+  if (typeof id === 'string' && !id.startsWith('t_')) {
+    try {
+      await updateDoc(doc(db, 'entries', id), { corrected: val });
+    } catch (err) {
+      console.warn('[firebase] saveCorrection failed', err);
+    }
+  }
 }
 
 function renderAll() {
@@ -421,8 +473,8 @@ function renderEntries() {
     return `<div class="entry">
       <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge ${bc}">${e.conf}%</span></div>
       <div class="entry-correct">
-        <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection(${e.id});this.blur();}"/>
-        <button class="save-btn" onclick="saveCorrection(${e.id})">save</button>
+        <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection('${e.id}');this.blur();}"/>
+        <button class="save-btn" onclick="saveCorrection('${e.id}')">save</button>
       </div>
     </div>`;
   }).join('');
@@ -455,21 +507,39 @@ function download(filename, content, type) {
   a.click();
 }
 
-function clearAll() {
+async function clearAll() {
   if (!confirm('Clear all entries? This cannot be undone.')) return;
   entries = [];
-  saveData();
+  saveLocal();
   document.getElementById('liveText').innerHTML = '<span class="placeholder">Your words appear here...</span>';
   document.getElementById('confRow').style.display = 'none';
   renderAll();
+  try {
+    const snap = await getDocs(entriesCol);
+    await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+  } catch (err) {
+    console.warn('[firebase] clearAll failed', err);
+  }
 }
 
-function saveData() {
+function saveLocal() {
   try { localStorage.setItem('cv_entries', JSON.stringify(entries)); } catch(e) {}
 }
 
-function loadData() {
+function loadLocal() {
   try { return JSON.parse(localStorage.getItem('cv_entries') || '[]'); } catch(e) { return []; }
+}
+
+async function loadFromCloud() {
+  try {
+    const q = query(entriesCol, orderBy('ts', 'desc'));
+    const snap = await getDocs(q);
+    entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    saveLocal();
+    renderAll();
+  } catch (err) {
+    console.warn('[firebase] loadFromCloud failed — using local cache', err);
+  }
 }
 
 function setLang(val) {
@@ -483,6 +553,16 @@ function openLangModal() { document.getElementById('langModal').classList.add('o
 function closeLangModal() { document.getElementById('langModal').classList.remove('open'); }
 
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Expose functions to inline onclick/onchange handlers (required under type="module")
+window.toggleListen = toggleListen;
+window.saveCorrection = saveCorrection;
+window.exportJSON = exportJSON;
+window.exportCSV = exportCSV;
+window.clearAll = clearAll;
+window.setLang = setLang;
+window.openLangModal = openLangModal;
+window.closeLangModal = closeLangModal;
 </script>
 </body>
 </html>
