@@ -376,7 +376,7 @@ function startListen() {
         if (txt) {
           document.getElementById('liveText').innerHTML = '<span>' + esc(txt) + '</span>';
           setConf(conf);
-          addEntry(txt, conf);
+          queueFinal(txt, conf);
         }
         finalIndex = i + 1;
       } else {
@@ -410,6 +410,56 @@ function stopListen() {
   document.getElementById('statusTxt').textContent = 'tap to start';
   document.getElementById('statusTxt').className = 'status';
   stopWave();
+  flushPending();   // commit any buffered phrase before we stop
+}
+
+// ---- Phrase buffering ----
+// Some engines (Samsung/Android etc.) emit progressive finals like
+// "my" -> "my name" -> "my name is" -> "my name is Carlos" as separate
+// result indices. We buffer for a short window and only commit the
+// longest/most-confident version.
+let pendingFinal = null;
+let pendingTimer = null;
+const COMMIT_DELAY_MS = 900;
+
+function queueFinal(text, conf) {
+  if (!text) return;
+  if (pendingFinal) {
+    const p = pendingFinal.text.toLowerCase();
+    const t = text.toLowerCase();
+    if (t === p) {
+      // same text, keep the higher confidence
+      if (conf > pendingFinal.conf) pendingFinal.conf = conf;
+    } else if (t.startsWith(p)) {
+      // new extends pending -> replace
+      pendingFinal = { text, conf };
+    } else if (p.startsWith(t)) {
+      // pending already extends new -> ignore new
+    } else {
+      // unrelated utterance: commit the old one now, start a new buffer
+      flushPending();
+      pendingFinal = { text, conf };
+    }
+  } else {
+    pendingFinal = { text, conf };
+  }
+  clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(flushPending, COMMIT_DELAY_MS);
+}
+
+function flushPending() {
+  clearTimeout(pendingTimer);
+  pendingTimer = null;
+  if (!pendingFinal) return;
+  const { text, conf } = pendingFinal;
+  pendingFinal = null;
+  addEntry(text, conf);
+}
+
+function dropPending() {
+  clearTimeout(pendingTimer);
+  pendingTimer = null;
+  pendingFinal = null;
 }
 
 function setConf(c) {
@@ -531,6 +581,7 @@ function download(filename, content, type) {
 
 async function clearAll() {
   if (!confirm('Clear all entries? This cannot be undone.')) return;
+  dropPending();
   entries = [];
   saveLocal();
   document.getElementById('liveText').innerHTML = '<span class="placeholder">Your words appear here...</span>';
