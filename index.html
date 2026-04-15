@@ -352,6 +352,9 @@ function startListen() {
   rec.continuous = true;
   rec.interimResults = true;
   rec.lang = currentLang;
+  // Tracks how many results we've already added as finals, so we don't
+  // add the same utterance twice when Chrome re-emits results.
+  let finalIndex = 0;
   rec.onstart = () => {
     listening = true;
     document.getElementById('micBtn').classList.add('on');
@@ -361,17 +364,26 @@ function startListen() {
     animWave();
   };
   rec.onresult = (e) => {
-    let interim = '', final = '', bestConf = 0;
-    for (let i = e.resultIndex; i < e.results.length; i++) {
+    let interim = '';
+    // Start from whichever is later: what Chrome says changed, or what we
+    // haven't processed yet. Prevents re-adding already-finalized results.
+    const startAt = Math.max(e.resultIndex, finalIndex);
+    for (let i = startAt; i < e.results.length; i++) {
       const r = e.results[i];
-      if (r.isFinal) { final += r[0].transcript; bestConf = Math.max(bestConf, r[0].confidence || 0); }
-      else { interim += r[0].transcript; }
+      if (r.isFinal) {
+        const txt = (r[0].transcript || '').trim();
+        const conf = r[0].confidence || 0;
+        if (txt) {
+          document.getElementById('liveText').innerHTML = '<span>' + esc(txt) + '</span>';
+          setConf(conf);
+          addEntry(txt, conf);
+        }
+        finalIndex = i + 1;
+      } else {
+        interim += r[0].transcript;
+      }
     }
-    if (final) {
-      document.getElementById('liveText').innerHTML = '<span>' + esc(final) + '</span>';
-      setConf(bestConf);
-      addEntry(final.trim(), bestConf);
-    } else if (interim) {
+    if (interim) {
       document.getElementById('liveText').innerHTML = '<span class="interim">' + esc(interim) + '</span>';
     }
   };
@@ -381,7 +393,12 @@ function startListen() {
     document.getElementById('statusTxt').className = 'status';
     stopListen();
   };
-  rec.onend = () => { if (listening) rec.start(); };
+  rec.onend = () => {
+    if (!listening) return;
+    // Results array resets on restart, so reset our tracker too.
+    finalIndex = 0;
+    try { rec.start(); } catch (err) { setTimeout(() => { try { rec.start(); } catch(_) {} }, 250); }
+  };
   rec.start();
 }
 
@@ -406,6 +423,11 @@ function setConf(c) {
 
 async function addEntry(text, conf) {
   if (!text) return;
+  // Safety net: drop same-text duplicates from the recognizer within 1.5s.
+  if (entries.length > 0) {
+    const last = entries[0];
+    if (last.heard === text && Date.now() - Date.parse(last.ts) < 1500) return;
+  }
   const entry = {
     id: 't_' + Date.now(),          // temporary local id until Firestore assigns one
     heard: text,
