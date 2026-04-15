@@ -168,6 +168,13 @@
   }
   .confirm-btn:active { opacity: 0.7; transform: scale(0.97); }
 
+  .del-btn {
+    background: none; border: none; padding: 2px 6px;
+    font-size: 20px; line-height: 1; color: var(--text3);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .del-btn:hover, .del-btn:active { color: var(--red); }
+
   .corrected-row { padding: 0 12px 10px; font-size: 13px; color: var(--blue); font-style: italic; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
   /* ACTIONS */
@@ -533,6 +540,19 @@ async function saveCorrection(id) {
   }
 }
 
+async function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  saveLocal();
+  renderAll();
+  if (typeof id === 'string' && !id.startsWith('t_')) {
+    try {
+      await deleteDoc(doc(db, 'entries', id));
+    } catch (err) {
+      console.warn('[firebase] deleteEntry failed', err);
+    }
+  }
+}
+
 async function confirmCorrect(id) {
   const e = entries.find(e => e.id === id);
   if (!e) return;
@@ -560,19 +580,20 @@ function renderEntries() {
   wrap.style.display = 'block';
   list.innerHTML = entries.map(e => {
     const bc = e.conf >= 70 ? 'hi' : e.conf >= 45 ? 'mid' : 'lo';
+    const delBtn = `<button class="del-btn" title="Delete this entry" onclick="deleteEntry('${e.id}')">×</button>`;
     if (e.corrected && e.corrected === e.heard) {
       return `<div class="entry">
-        <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge hi">✓ correct</span></div>
+        <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge hi">✓ correct</span>${delBtn}</div>
       </div>`;
     }
     if (e.corrected) {
       return `<div class="entry">
-        <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge lo">engine</span></div>
+        <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge lo">engine</span>${delBtn}</div>
         <div class="corrected-row"><span class="badge saved">saved</span> you said: "${esc(e.corrected)}"</div>
       </div>`;
     }
     return `<div class="entry">
-      <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge ${bc}">${e.conf}%</span></div>
+      <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge ${bc}">${e.conf}%</span>${delBtn}</div>
       <div class="entry-correct">
         <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection('${e.id}');this.blur();}"/>
         <button class="save-btn" onclick="saveCorrection('${e.id}')">save</button>
@@ -661,6 +682,7 @@ function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 window.toggleListen = toggleListen;
 window.saveCorrection = saveCorrection;
 window.confirmCorrect = confirmCorrect;
+window.deleteEntry = deleteEntry;
 window.exportJSON = exportJSON;
 window.exportCSV = exportCSV;
 window.clearAll = clearAll;
