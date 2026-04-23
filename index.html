@@ -304,6 +304,70 @@
     transition: all 0.15s; margin-top: 8px;
   }
   .copy-btn:active { opacity: 0.7; }
+
+  /* PRACTICE */
+  .practice-card {
+    background: var(--bg2); border-radius: var(--radius);
+    border: 0.5px solid var(--border); padding: 1.5rem 1.25rem;
+    text-align: center; margin-bottom: 1rem;
+  }
+  .practice-level { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+  .practice-target { font-size: 28px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 8px; }
+  .practice-hear {
+    padding: 6px 14px; font-size: 13px;
+    border: 0.5px solid var(--border2); border-radius: 20px;
+    background: var(--bg); color: var(--text2);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .practice-hear:active { background: var(--bg3); }
+  .practice-mic {
+    width: 72px; height: 72px; border-radius: 50%;
+    border: 2px solid var(--border2); background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    font-size: 28px; margin: 1rem auto;
+    transition: all 0.2s;
+  }
+  .practice-mic.listening { border-color: var(--green); background: var(--green-bg); animation: pulse-border 1.2s ease-in-out infinite; }
+  @keyframes pulse-border { 0%,100%{box-shadow:0 0 0 0 rgba(29,158,117,0.3)} 50%{box-shadow:0 0 0 10px rgba(29,158,117,0)} }
+  .practice-mic-label { font-size: 13px; color: var(--text3); margin-bottom: 1rem; }
+  .practice-result {
+    padding: 1rem; border-radius: var(--radius-sm);
+    margin-bottom: 1rem; text-align: center; display: none;
+  }
+  .practice-result.pass { display: block; background: var(--green-bg); border: 0.5px solid var(--green); }
+  .practice-result.fail { display: block; background: var(--red-bg); border: 0.5px solid var(--red); }
+  .practice-result .result-icon { font-size: 32px; margin-bottom: 4px; }
+  .practice-result .result-msg { font-size: 15px; font-weight: 500; color: var(--text); }
+  .practice-result .result-heard { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .practice-nav { display: flex; gap: 8px; justify-content: center; margin-bottom: 1rem; }
+  .practice-nav-btn {
+    padding: 10px 20px; font-size: 14px; font-weight: 500;
+    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text2);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .practice-nav-btn.primary { border-color: var(--green); background: var(--green-bg); color: var(--green-dark); }
+  .practice-nav-btn:active { opacity: 0.7; }
+  .streak-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1rem; }
+  .streak-num { font-size: 20px; font-weight: 600; color: var(--text); }
+  .streak-label { font-size: 12px; color: var(--text2); }
+  .level-tabs { display: flex; gap: 0; margin-bottom: 1rem; border-radius: var(--radius-sm); overflow: hidden; border: 0.5px solid var(--border2); }
+  .level-tab {
+    flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 600;
+    border: none; background: var(--bg); color: var(--text3);
+    cursor: pointer; text-align: center;
+  }
+  .level-tab.active { background: var(--green); color: #fff; }
+  .mastered-badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; border-radius: 4px; background: var(--green-bg); color: var(--green-dark); }
+  .progress-list { display: flex; flex-direction: column; gap: 6px; }
+  .progress-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 8px 12px; background: var(--bg2); border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+  }
+  .progress-word { font-size: 14px; color: var(--text); flex: 1; }
+  .progress-streak { font-size: 12px; color: var(--text2); }
 </style>
 </head>
 <body>
@@ -318,6 +382,7 @@
 <div class="tabs">
   <button class="tab active" id="tabRecord" onclick="switchTab('record')">Record</button>
   <button class="tab" id="tabTranslate" onclick="switchTab('translate')">Translate</button>
+  <button class="tab" id="tabPractice" onclick="switchTab('practice')">Practice</button>
 </div>
 
 <div id="recordView">
@@ -424,6 +489,50 @@
 
 </div>
 </div><!-- /translateView -->
+
+<div id="practiceView" style="display:none">
+<div class="main">
+
+  <div class="level-tabs">
+    <button class="level-tab active" id="lvlWord" onclick="setPracticeLevel('word')">Words</button>
+    <button class="level-tab" id="lvlPhrase" onclick="setPracticeLevel('phrase')">Phrases</button>
+    <button class="level-tab" id="lvlSentence" onclick="setPracticeLevel('sentence')">Sentences</button>
+  </div>
+
+  <div class="streak-bar">
+    <div><span class="streak-num" id="pStreak">0</span> <span class="streak-label">streak</span></div>
+    <div><span class="streak-num" id="pMastered">0</span> <span class="streak-label">mastered</span></div>
+    <div><span class="streak-num" id="pTotal">0</span> <span class="streak-label">total</span></div>
+  </div>
+
+  <div class="practice-card">
+    <div class="practice-level" id="pLevel">word</div>
+    <div class="practice-target" id="pTarget">—</div>
+    <button class="practice-hear" onclick="hearTarget()">🔊 Hear it</button>
+    <div id="pTip" style="font-size:13px; color:var(--text2); margin-top:10px; line-height:1.5; min-height:20px;"></div>
+  </div>
+
+  <div class="practice-mic-label" id="pMicLabel">tap to try saying it</div>
+  <div class="practice-mic" id="pMicBtn" onclick="togglePracticeMic()">🎤</div>
+
+  <div class="practice-result" id="pResult">
+    <div class="result-icon" id="pIcon"></div>
+    <div class="result-msg" id="pMsg"></div>
+    <div class="result-heard" id="pHeard"></div>
+  </div>
+
+  <div class="practice-nav">
+    <button class="practice-nav-btn" onclick="skipPractice()">skip</button>
+    <button class="practice-nav-btn primary" onclick="nextPractice()">next →</button>
+  </div>
+
+  <div style="margin-top:0.5rem;">
+    <div class="section-hd" id="pProgressHd">progress</div>
+    <div class="progress-list" id="pProgressList"></div>
+  </div>
+
+</div>
+</div><!-- /practiceView -->
 
 <!-- Language Modal -->
 <div class="modal-bg" id="langModal">
@@ -990,9 +1099,12 @@ function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function switchTab(tab) {
   document.getElementById('recordView').style.display = tab === 'record' ? '' : 'none';
   document.getElementById('translateView').style.display = tab === 'translate' ? '' : 'none';
+  document.getElementById('practiceView').style.display = tab === 'practice' ? '' : 'none';
   document.getElementById('tabRecord').className = tab === 'record' ? 'tab active' : 'tab';
   document.getElementById('tabTranslate').className = tab === 'translate' ? 'tab active' : 'tab';
+  document.getElementById('tabPractice').className = tab === 'practice' ? 'tab active' : 'tab';
   if (tab === 'translate') renderVocabList();
+  if (tab === 'practice') initPractice();
 }
 
 // ---- Translate engine ----
@@ -1181,6 +1293,283 @@ async function copyTranslation() {
   setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
 }
 
+// ---- Practice mode ----
+let practiceLevel = 'word';
+let practiceList = [];
+let practiceIndex = 0;
+let practiceStreak = 0;
+let practiceProgress = loadPracticeProgress();
+let pRec, pListening = false;
+
+const defaultWords = [
+  'three','think','this','that','the','voice','very','water','what','where',
+  'when','with','would','people','please','place','because','before','better',
+  'something','everything','nothing','another','together','different',
+  'hello','thank you','excuse me','sorry','yes','no','help','name','want','need'
+];
+const defaultPhrases = [
+  'my name is','I want to','can you help me','thank you very much',
+  'where is the','how much is','I need help','nice to meet you',
+  'excuse me please','I would like','can I have','what time is it'
+];
+const defaultSentences = [
+  'My name is Carlos','I want to try something','Can you help me please',
+  'Where is the nearest hospital','I need to make an appointment',
+  'Thank you very much for your help','What time does the store close',
+  'I would like a glass of water','Can I have the check please',
+  'Nice to meet you my name is Carlos'
+];
+
+function buildPracticeList() {
+  // Priority: words from learned corrections (user struggles with these)
+  const fromLearned = [];
+  for (const k of Object.keys(learnedMap)) {
+    const m = learnedMap[k];
+    if (!m.to) continue;
+    const text = m.to;
+    const words = text.split(/\s+/);
+    if (practiceLevel === 'word' && words.length <= 2) fromLearned.push(text);
+    if (practiceLevel === 'phrase' && words.length >= 2 && words.length <= 5) fromLearned.push(text);
+    if (practiceLevel === 'sentence' && words.length > 4) fromLearned.push(text);
+  }
+  // Fill with defaults if not enough learned items
+  let defaults = practiceLevel === 'word' ? defaultWords
+    : practiceLevel === 'phrase' ? defaultPhrases : defaultSentences;
+  const combined = [...new Set([...fromLearned, ...defaults])];
+  // Sort: un-mastered first, then mastered
+  combined.sort((a, b) => {
+    const aM = (practiceProgress[normalize(a)] || 0) >= 3 ? 1 : 0;
+    const bM = (practiceProgress[normalize(b)] || 0) >= 3 ? 1 : 0;
+    return aM - bM;
+  });
+  return combined;
+}
+
+function initPractice() {
+  practiceList = buildPracticeList();
+  practiceIndex = 0;
+  practiceStreak = 0;
+  showPracticeItem();
+  renderPracticeProgress();
+}
+
+function showPracticeItem() {
+  if (!practiceList.length) {
+    document.getElementById('pTarget').textContent = 'No words to practice yet. Go to Record and speak!';
+    document.getElementById('pTip').textContent = '';
+    return;
+  }
+  const item = practiceList[practiceIndex % practiceList.length];
+  document.getElementById('pLevel').textContent = practiceLevel;
+  document.getElementById('pTarget').textContent = item;
+  document.getElementById('pResult').className = 'practice-result';
+  document.getElementById('pMicLabel').textContent = 'tap to try saying it';
+  document.getElementById('pMicBtn').classList.remove('listening');
+  // Show pronunciation tip
+  showPronunciationTip(item);
+  updatePracticeStats();
+}
+
+function showPronunciationTip(word) {
+  const tips = {
+    'three': 'Place tongue between teeth, blow air gently: "th-ree" (not "free")',
+    'think': 'Tongue between teeth for "th", then "ink". Feel the vibration.',
+    'this': 'Tongue between teeth, voice it: "th" vibrates, unlike "th" in "three"',
+    'that': 'Same voiced "th" as "this" — tongue between teeth with vibration',
+    'the': 'Quick voiced "th" — tongue tip touches between upper and lower teeth',
+    'voice': 'Bite lower lip lightly for "v", not "b". "V" vibrates with air flow.',
+    'very': 'Lower lip under top teeth for "v", then "air-ee"',
+    'water': 'Start with rounded lips for "w", then "ah-ter"',
+    'what': 'Round lips for "w", open for "ah", finish with "t"',
+    'where': 'Round lips, blow slightly for "wh", then "air"',
+    'when': 'Round lips for "w", open mouth for "en"',
+    'with': 'Round lips for "w", short "ih", tongue between teeth for "th"',
+    'would': 'Round lips for "w", then "ood" (rhymes with "good")',
+    'people': 'Close both lips for "p", open for "ee", close for "p" again, then "ul"',
+    'please': 'Lips together for "p", tongue up for "l", then "eez"',
+    'something': 'Start with "s" (teeth together, hiss), then "uhm-thing"',
+    'everything': '"Ev-ree-thing" — 3 beats. Bite lip for "v", tongue between teeth for "th"',
+    'nothing': '"Nuh-thing" — tongue touches roof for "n", tongue between teeth for "th"',
+    'because': '"Bih-kuz" — lips together for "b", back of tongue up for "k"',
+    'hello': '"Heh-low" — breathe out for "h", tongue stays low',
+    'thank you': '"Th-ank yoo" — tongue between teeth, then "ank" with back of tongue',
+    'excuse me': '"Ek-skyooz mee" — start with "ek", then "s" blends into "kyooz"',
+    'sorry': '"Saw-ree" — teeth together for "s" (hiss, not "sh")',
+  };
+  const tipEl = document.getElementById('pTip');
+  const lower = word.toLowerCase();
+  if (tips[lower]) {
+    tipEl.innerHTML = '💡 <strong>Tip:</strong> ' + esc(tips[lower]);
+    return;
+  }
+  // Generic tips based on common difficult sounds
+  const genericTips = [];
+  if (/th/i.test(word)) genericTips.push('For "th" — place tongue tip between your teeth');
+  if (/\bv/i.test(word)) genericTips.push('For "v" — bite lower lip gently (not "b")');
+  if (/\bw/i.test(word)) genericTips.push('For "w" — round your lips into a small circle');
+  if (/\bf/i.test(word)) genericTips.push('For "f" — top teeth on lower lip, blow air');
+  if (/\bp/i.test(word)) genericTips.push('For "p" — press lips together, then pop air out');
+  if (/\br/i.test(word)) genericTips.push('For "r" — curl tongue back, don\'t touch the roof');
+  if (/\bl/i.test(word)) genericTips.push('For "l" — tongue tip touches the ridge behind upper teeth');
+  if (/\bs[^h]/i.test(word) || /^s/i.test(word)) genericTips.push('For "s" — teeth close together, hiss air through');
+  if (/sh/i.test(word)) genericTips.push('For "sh" — lips forward, tongue pulled back');
+  if (genericTips.length) {
+    tipEl.innerHTML = '💡 ' + genericTips.slice(0, 2).map(t => esc(t)).join('. ');
+  } else {
+    tipEl.textContent = '💡 Listen first, then try to match the sounds.';
+  }
+}
+
+function hearTarget() {
+  const text = document.getElementById('pTarget').textContent;
+  if (!text || text === '—') return;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = currentLang;
+  utt.rate = 0.85;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utt);
+}
+
+function togglePracticeMic() {
+  if (!SR) return;
+  pListening ? stopPracticeMic() : startPracticeMic();
+}
+
+function startPracticeMic() {
+  const target = document.getElementById('pTarget').textContent;
+  if (!target || target === '—') return;
+  pRec = new SR();
+  pRec.continuous = false;
+  pRec.interimResults = true;
+  pRec.lang = currentLang;
+  const btn = document.getElementById('pMicBtn');
+  pRec.onstart = () => {
+    pListening = true;
+    btn.classList.add('listening');
+    document.getElementById('pMicLabel').textContent = 'listening...';
+    document.getElementById('pResult').className = 'practice-result';
+  };
+  pRec.onresult = (e) => {
+    let heard = '';
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) heard = e.results[i][0].transcript.trim();
+      else document.getElementById('pMicLabel').textContent = '"' + e.results[i][0].transcript + '"';
+    }
+    if (heard) checkPracticeResult(heard, target);
+  };
+  pRec.onend = () => { stopPracticeMic(); };
+  pRec.onerror = () => { stopPracticeMic(); };
+  pRec.start();
+}
+
+function stopPracticeMic() {
+  if (pRec) { pRec.onend = null; try { pRec.stop(); } catch(_) {} }
+  pListening = false;
+  document.getElementById('pMicBtn').classList.remove('listening');
+}
+
+function checkPracticeResult(heard, target) {
+  const hNorm = normalize(heard);
+  const tNorm = normalize(target);
+  const pass = hNorm === tNorm;
+  // Also accept if they're very close (levenshtein ratio > 0.8)
+  const ratio = similarity(hNorm, tNorm);
+  const accepted = pass || ratio >= 0.8;
+
+  const resEl = document.getElementById('pResult');
+  const iconEl = document.getElementById('pIcon');
+  const msgEl = document.getElementById('pMsg');
+  const heardEl = document.getElementById('pHeard');
+
+  if (accepted) {
+    resEl.className = 'practice-result pass';
+    iconEl.textContent = '✅';
+    msgEl.textContent = pass ? 'Perfect!' : 'Close enough — great job!';
+    heardEl.textContent = 'Engine heard: "' + heard + '"';
+    practiceStreak++;
+    // Track progress
+    const pKey = normalize(target);
+    practiceProgress[pKey] = (practiceProgress[pKey] || 0) + 1;
+    savePracticeProgress();
+  } else {
+    resEl.className = 'practice-result fail';
+    iconEl.textContent = '❌';
+    msgEl.textContent = 'Not quite — try again!';
+    heardEl.textContent = 'Engine heard: "' + heard + '" instead of "' + target + '"';
+    practiceStreak = 0;
+  }
+  updatePracticeStats();
+  renderPracticeProgress();
+}
+
+function similarity(a, b) {
+  if (a === b) return 1;
+  const aw = a.split(/\s+/), bw = b.split(/\s+/);
+  let match = 0;
+  for (const w of aw) if (bw.includes(w)) match++;
+  return match / Math.max(aw.length, bw.length);
+}
+
+function updatePracticeStats() {
+  document.getElementById('pStreak').textContent = practiceStreak;
+  const mastered = Object.values(practiceProgress).filter(v => v >= 3).length;
+  document.getElementById('pMastered').textContent = mastered;
+  document.getElementById('pTotal').textContent = practiceList.length;
+}
+
+function nextPractice() {
+  practiceIndex = (practiceIndex + 1) % Math.max(practiceList.length, 1);
+  showPracticeItem();
+}
+
+function skipPractice() {
+  nextPractice();
+}
+
+function setPracticeLevel(level) {
+  practiceLevel = level;
+  document.getElementById('lvlWord').className = level === 'word' ? 'level-tab active' : 'level-tab';
+  document.getElementById('lvlPhrase').className = level === 'phrase' ? 'level-tab active' : 'level-tab';
+  document.getElementById('lvlSentence').className = level === 'sentence' ? 'level-tab active' : 'level-tab';
+  initPractice();
+}
+
+function renderPracticeProgress() {
+  const list = document.getElementById('pProgressList');
+  const items = practiceList.slice(0, 20);
+  document.getElementById('pProgressHd').textContent = `progress — ${Object.values(practiceProgress).filter(v => v >= 3).length} mastered`;
+  list.innerHTML = items.map(item => {
+    const key = normalize(item);
+    const count = practiceProgress[key] || 0;
+    const mastered = count >= 3;
+    const streakDots = Array.from({length: 3}, (_, i) => i < count ?
+      '<span style="color:var(--green);">●</span>' :
+      '<span style="color:var(--border2);">○</span>'
+    ).join(' ');
+    return `<div class="progress-item">
+      <span class="progress-word">${esc(item)}</span>
+      ${mastered ? '<span class="mastered-badge">mastered</span>' : ''}
+      <span class="progress-streak">${streakDots}</span>
+      <button class="practice-hear" onclick="hearWord('${esc(item).replace(/'/g, "\\'")}')" style="padding:3px 8px; font-size:11px;">🔊</button>
+    </div>`;
+  }).join('');
+}
+
+function hearWord(word) {
+  const utt = new SpeechSynthesisUtterance(word);
+  utt.lang = currentLang;
+  utt.rate = 0.85;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utt);
+}
+
+function savePracticeProgress() {
+  try { localStorage.setItem('cv_practice', JSON.stringify(practiceProgress)); } catch(_) {}
+}
+function loadPracticeProgress() {
+  try { return JSON.parse(localStorage.getItem('cv_practice') || '{}'); } catch(_) { return {}; }
+}
+
 // Expose functions to inline onclick/onchange handlers (required under type="module")
 window.toggleListen = toggleListen;
 window.saveCorrection = saveCorrection;
@@ -1200,6 +1589,12 @@ window.toggleTranslateMic = toggleTranslateMic;
 window.applySuggestion = applySuggestion;
 window.addDictEntry = addDictEntry;
 window.copyTranslation = copyTranslation;
+window.hearTarget = hearTarget;
+window.hearWord = hearWord;
+window.togglePracticeMic = togglePracticeMic;
+window.nextPractice = nextPractice;
+window.skipPractice = skipPractice;
+window.setPracticeLevel = setPracticeLevel;
 </script>
 </body>
 </html>
