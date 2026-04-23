@@ -223,6 +223,57 @@
     line-height: 1.7;
   }
   .no-support strong { color: var(--text); }
+
+  /* TABS */
+  .tabs {
+    display: flex; max-width: 600px; margin: 0 auto;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .tab {
+    flex: 1; padding: 12px 8px; font-size: 14px; font-weight: 600;
+    border: none; border-bottom: 2.5px solid transparent;
+    background: none; color: var(--text3); cursor: pointer;
+    text-align: center; -webkit-tap-highlight-color: transparent;
+  }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* TRANSLATE VIEW */
+  .translate-area {
+    width: 100%; padding: 12px; font-size: 16px; line-height: 1.5;
+    border: 0.5px solid var(--border2); border-radius: var(--radius);
+    background: var(--bg2); color: var(--text); resize: vertical;
+    font-family: inherit; min-height: 80px;
+    -webkit-appearance: none; appearance: none;
+  }
+  .translate-area:focus { outline: none; border-color: var(--green); }
+  .translate-area::placeholder { color: var(--text3); }
+  .translate-mic {
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 0.5px solid var(--border2); background: var(--bg);
+    cursor: pointer; font-size: 20px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .translate-mic.on { border-color: var(--green); background: var(--green-bg); }
+  .input-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 1rem; }
+  .result-card {
+    background: var(--bg2); border-radius: var(--radius);
+    border: 0.5px solid var(--border); padding: 1rem 1.125rem;
+    margin-bottom: 1rem;
+  }
+  .result-text { font-size: 20px; line-height: 1.5; color: var(--text); }
+  .result-original { font-size: 14px; color: var(--text3); margin-top: 8px; }
+  .change-item {
+    display: flex; gap: 8px; align-items: baseline; padding: 6px 0;
+    font-size: 14px; border-bottom: 0.5px solid var(--border);
+  }
+  .change-from { text-decoration: line-through; color: var(--text3); }
+  .change-to { color: var(--purple); font-weight: 500; }
+  .change-arrow { color: var(--text3); }
+  .coverage-bar { margin-top: 1rem; }
+  .coverage-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .coverage-track { height: 6px; background: var(--border); border-radius: 3px; }
+  .coverage-fill { height: 6px; border-radius: 3px; background: var(--purple); transition: width .4s; }
 </style>
 </head>
 <body>
@@ -234,6 +285,12 @@
   </div>
 </header>
 
+<div class="tabs">
+  <button class="tab active" id="tabRecord" onclick="switchTab('record')">Record</button>
+  <button class="tab" id="tabTranslate" onclick="switchTab('translate')">Translate</button>
+</div>
+
+<div id="recordView">
 <div class="main">
 
   <div id="noSupport" class="no-support" style="display:none">
@@ -295,6 +352,39 @@
 
   </div>
 </div>
+</div><!-- /recordView -->
+
+<div id="translateView" style="display:none">
+<div class="main">
+
+  <div class="section-hd" style="margin-bottom:10px;">speak or type your message</div>
+  <div class="input-row">
+    <textarea id="translateInput" class="translate-area" placeholder="Type here, or tap the mic to speak..." rows="3" oninput="liveTranslate()"></textarea>
+    <button class="translate-mic" id="tMicBtn" onclick="toggleTranslateMic()">🎤</button>
+  </div>
+
+  <div id="tResult" style="display:none;">
+    <div class="section-hd">corrected version</div>
+    <div class="result-card">
+      <div class="result-text" id="tOutput"></div>
+      <div class="result-original" id="tOriginal"></div>
+    </div>
+
+    <div id="tChanges"></div>
+
+    <div class="coverage-bar">
+      <div class="coverage-label">vocabulary coverage: <strong id="tCovPct">0%</strong></div>
+      <div class="coverage-track"><div class="coverage-fill" id="tCovFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem;">
+    <div class="section-hd" id="tVocabHd">learned vocabulary — 0 patterns</div>
+    <div class="entries" id="tVocabList"></div>
+  </div>
+
+</div>
+</div><!-- /translateView -->
 
 <!-- Language Modal -->
 <div class="modal-bg" id="langModal">
@@ -814,6 +904,128 @@ function closeLangModal() { document.getElementById('langModal').classList.remov
 
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// ---- Tab switching ----
+function switchTab(tab) {
+  document.getElementById('recordView').style.display = tab === 'record' ? '' : 'none';
+  document.getElementById('translateView').style.display = tab === 'translate' ? '' : 'none';
+  document.getElementById('tabRecord').className = tab === 'record' ? 'tab active' : 'tab';
+  document.getElementById('tabTranslate').className = tab === 'translate' ? 'tab active' : 'tab';
+  if (tab === 'translate') renderVocabList();
+}
+
+// ---- Translate engine ----
+function escapeRx(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function translateText(input) {
+  if (!input.trim()) return { output: '', applied: [], coverage: 0 };
+
+  let output = input;
+  const applied = [];
+  // Build list of patterns sorted by longest "from" first (avoids partial hits)
+  const patterns = Object.keys(learnedMap)
+    .map(k => learnedMap[k])
+    .filter(m => m.from && m.to && m.from !== m.to)
+    .sort((a, b) => b.from.length - a.from.length);
+
+  for (const p of patterns) {
+    const rx = new RegExp(escapeRx(p.from), 'gi');
+    if (rx.test(output)) {
+      output = output.replace(rx, p.to);
+      applied.push(p);
+    }
+  }
+
+  // Coverage: what fraction of input words were touched by corrections
+  const inputWords = input.toLowerCase().split(/\s+/).filter(Boolean);
+  let touchedWords = 0;
+  for (const p of applied) {
+    const fromWords = p.from.toLowerCase().split(/\s+/);
+    touchedWords += fromWords.length;
+  }
+  const coverage = inputWords.length > 0 ? Math.min(Math.round((touchedWords / inputWords.length) * 100), 100) : 0;
+
+  return { output: output.trim(), applied, coverage };
+}
+
+function liveTranslate() {
+  const input = document.getElementById('translateInput').value;
+  const res = document.getElementById('tResult');
+  if (!input.trim()) { res.style.display = 'none'; return; }
+
+  const { output, applied, coverage } = translateText(input);
+  res.style.display = '';
+
+  document.getElementById('tOutput').textContent = output || input;
+  document.getElementById('tOriginal').textContent = applied.length
+    ? 'original: "' + input.trim() + '"'
+    : 'no corrections needed — text kept as-is';
+
+  const changesEl = document.getElementById('tChanges');
+  if (applied.length) {
+    changesEl.innerHTML = '<div class="section-hd" style="margin-top:12px;">corrections applied</div>' +
+      applied.map(p =>
+        `<div class="change-item"><span class="change-from">${esc(p.from)}</span><span class="change-arrow">→</span><span class="change-to">${esc(p.to)}</span></div>`
+      ).join('');
+  } else {
+    changesEl.innerHTML = '';
+  }
+
+  document.getElementById('tCovPct').textContent = coverage + '%';
+  document.getElementById('tCovFill').style.width = coverage + '%';
+}
+
+// ---- Translate mic (same speech engine, feeds into the textarea) ----
+let tRec, tListening = false;
+
+function toggleTranslateMic() {
+  if (!SR) return;
+  tListening ? stopTranslateMic() : startTranslateMic();
+}
+
+function startTranslateMic() {
+  tRec = new SR();
+  tRec.continuous = false;
+  tRec.interimResults = true;
+  tRec.lang = currentLang;
+  const btn = document.getElementById('tMicBtn');
+  tRec.onstart = () => { tListening = true; btn.classList.add('on'); btn.textContent = '⏹'; };
+  tRec.onresult = (e) => {
+    let text = '';
+    for (let i = 0; i < e.results.length; i++) text = e.results[i][0].transcript;
+    document.getElementById('translateInput').value = text;
+    liveTranslate();
+  };
+  tRec.onend = () => { stopTranslateMic(); };
+  tRec.onerror = () => { stopTranslateMic(); };
+  tRec.start();
+}
+
+function stopTranslateMic() {
+  if (tRec) { tRec.onend = null; try { tRec.stop(); } catch(_) {} }
+  tListening = false;
+  const btn = document.getElementById('tMicBtn');
+  btn.classList.remove('on');
+  btn.textContent = '🎤';
+}
+
+function renderVocabList() {
+  const keys = Object.keys(learnedMap).sort((a,b) => (learnedMap[b].count||0) - (learnedMap[a].count||0));
+  document.getElementById('tVocabHd').textContent = `learned vocabulary — ${keys.length} pattern${keys.length !== 1 ? 's' : ''}`;
+  const list = document.getElementById('tVocabList');
+  if (!keys.length) {
+    list.innerHTML = '<p style="color:var(--text3); font-size:14px; padding:1rem 0; text-align:center;">No patterns yet. Go to Record, speak, and correct phrases to teach the app.</p>';
+    return;
+  }
+  list.innerHTML = keys.map(k => {
+    const m = learnedMap[k];
+    return `<div class="entry" style="padding:10px 12px;">
+      <div style="font-size:13px; color:var(--text3); text-decoration:line-through;">${esc(m.from || k)}</div>
+      <div style="font-size:15px; color:var(--purple); margin-top:3px;">→ ${esc(m.to)}</div>
+      <div style="font-size:11px; color:var(--text3); margin-top:3px;">used ${m.count || 1}×</div>
+    </div>`;
+  }).join('');
+}
+
 // Expose functions to inline onclick/onchange handlers (required under type="module")
 window.toggleListen = toggleListen;
 window.saveCorrection = saveCorrection;
@@ -827,6 +1039,9 @@ window.clearAll = clearAll;
 window.setLang = setLang;
 window.openLangModal = openLangModal;
 window.closeLangModal = closeLangModal;
+window.switchTab = switchTab;
+window.liveTranslate = liveTranslate;
+window.toggleTranslateMic = toggleTranslateMic;
 </script>
 </body>
 </html>
