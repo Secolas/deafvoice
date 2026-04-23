@@ -274,6 +274,36 @@
   .coverage-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
   .coverage-track { height: 6px; background: var(--border); border-radius: 3px; }
   .coverage-fill { height: 6px; border-radius: 3px; background: var(--purple); transition: width .4s; }
+
+  .suggest-row { padding: 4px 10px 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .suggest-label { font-size: 12px; color: var(--text3); }
+  .suggest-btn {
+    padding: 5px 10px; font-size: 13px; font-weight: 500;
+    border: 0.5px solid var(--purple); border-radius: var(--radius-sm);
+    background: var(--purple-bg); color: var(--purple);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .suggest-btn:active { opacity: 0.7; }
+
+  .dict-row { display: flex; gap: 6px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  .dict-input {
+    flex: 1; min-width: 80px; padding: 8px 10px; font-size: 14px;
+    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+    background: var(--bg2); color: var(--text);
+    -webkit-appearance: none; appearance: none;
+  }
+  .dict-input:focus { outline: none; border-color: var(--green); }
+  .dict-input::placeholder { color: var(--text3); }
+  .dict-arrow { color: var(--text3); font-size: 16px; flex-shrink: 0; }
+
+  .copy-btn {
+    padding: 8px 14px; font-size: 13px; font-weight: 500;
+    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text2);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s; margin-top: 8px;
+  }
+  .copy-btn:active { opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -368,6 +398,7 @@
     <div class="result-card">
       <div class="result-text" id="tOutput"></div>
       <div class="result-original" id="tOriginal"></div>
+      <button class="copy-btn" id="copyBtn" onclick="copyTranslation()">📋 Copy</button>
     </div>
 
     <div id="tChanges"></div>
@@ -379,6 +410,14 @@
   </div>
 
   <div style="margin-top:1.5rem;">
+    <div class="section-hd">add to dictionary</div>
+    <div class="dict-row">
+      <input class="dict-input" id="dictFrom" placeholder="engine hears..." onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
+      <span class="dict-arrow">→</span>
+      <input class="dict-input" id="dictTo" placeholder="you mean..." onkeydown="if(event.key==='Enter')addDictEntry()"/>
+      <button class="save-btn" onclick="addDictEntry()">add</button>
+    </div>
+
     <div class="section-hd" id="tVocabHd">learned vocabulary — 0 patterns</div>
     <div class="entries" id="tVocabList"></div>
   </div>
@@ -720,8 +759,15 @@ function renderEntries() {
         <div class="corrected-row"><span class="badge saved">saved</span> you said: "${esc(e.corrected)}"</div>
       </div>`;
     }
+    const suggestion = getSuggestion(e.heard);
+    let suggestHtml = '';
+    if (suggestion && suggestion !== e.heard) {
+      suggestionCache[e.id] = suggestion;
+      suggestHtml = `<div class="suggest-row"><span class="suggest-label">did you mean:</span><button class="suggest-btn" onclick="applySuggestion('${e.id}')">"${esc(suggestion)}"</button></div>`;
+    }
     return `<div class="entry">
       <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge ${bc}">${e.conf}%</span>${delBtn}</div>
+      ${suggestHtml}
       <div class="entry-correct">
         <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection('${e.id}');this.blur();}"/>
         <button class="save-btn" onclick="saveCorrection('${e.id}')">save</button>
@@ -812,8 +858,44 @@ function learnPattern(fromText, toText) {
     count: (existing && existing.count) ? existing.count + 1 : 1,
     ts: new Date().toISOString()
   };
+  // Also extract word-level diff and store that as a separate mapping
+  const wordDiff = extractWordDiff(fromText, toText);
+  if (wordDiff) {
+    const wKey = normalize(wordDiff.from);
+    if (wKey && wKey !== key) {
+      const wExisting = learnedMap[wKey];
+      learnedMap[wKey] = {
+        from: wordDiff.from,
+        to: wordDiff.to,
+        count: (wExisting && wExisting.count) ? wExisting.count + 1 : 1,
+        type: 'word',
+        ts: new Date().toISOString()
+      };
+    }
+  }
   persistLearnedMap();
   renderAll();
+}
+
+function extractWordDiff(fromText, toText) {
+  const fw = fromText.toLowerCase().split(/\s+/);
+  const tw = toText.toLowerCase().split(/\s+/);
+  // Find common prefix
+  let pre = 0;
+  while (pre < fw.length && pre < tw.length && fw[pre] === tw[pre]) pre++;
+  // Find common suffix
+  let suf = 0;
+  while (suf < fw.length - pre && suf < tw.length - pre &&
+         fw[fw.length - 1 - suf] === tw[tw.length - 1 - suf]) suf++;
+  const fromDiff = fw.slice(pre, fw.length - suf).join(' ');
+  const toDiff = tw.slice(pre, tw.length - suf).join(' ');
+  if (fromDiff && toDiff && fromDiff !== toDiff && fromDiff.length < fromText.length * 0.8) {
+    // Preserve original casing from the input text for the extracted parts
+    const fromOriginal = fromText.split(/\s+/).slice(pre, fw.length - suf).join(' ');
+    const toOriginal = toText.split(/\s+/).slice(pre, tw.length - suf).join(' ');
+    return { from: fromOriginal, to: toOriginal };
+  }
+  return null;
 }
 
 function saveLearnedLocal() {
@@ -1026,6 +1108,79 @@ function renderVocabList() {
   }).join('');
 }
 
+// ---- Suggestion engine ----
+const suggestionCache = {};
+
+function getSuggestion(text) {
+  const norm = normalize(text);
+  if (learnedMap[norm]) return learnedMap[norm].to;
+  // Check if any learned "from" shares significant words with this text
+  const words = norm.split(/\s+/).filter(Boolean);
+  const wordSet = new Set(words);
+  let best = null, bestScore = 0;
+  for (const k of Object.keys(learnedMap)) {
+    const m = learnedMap[k];
+    if (!m.from || !m.to || m.from === m.to) continue;
+    const fromWords = normalize(m.from).split(/\s+/).filter(Boolean);
+    let overlap = 0;
+    for (const w of fromWords) if (wordSet.has(w)) overlap++;
+    const score = overlap / Math.max(words.length, fromWords.length);
+    if (score > bestScore && score >= 0.4) {
+      bestScore = score;
+      best = m.to;
+    }
+  }
+  return best;
+}
+
+function applySuggestion(id) {
+  const suggestion = suggestionCache[id];
+  if (!suggestion) return;
+  const e = entries.find(e => e.id === id);
+  if (!e) return;
+  e.corrected = suggestion;
+  saveLocal();
+  renderAll();
+  if (typeof id === 'string' && !id.startsWith('t_')) {
+    updateDoc(doc(db, 'entries', id), { corrected: suggestion }).catch(err =>
+      console.warn('[firebase] applySuggestion failed', err));
+  }
+  if (suggestion !== e.heard) learnPattern(e.heard, suggestion);
+}
+
+// ---- Personal dictionary ----
+function addDictEntry() {
+  const fromEl = document.getElementById('dictFrom');
+  const toEl = document.getElementById('dictTo');
+  const from = (fromEl.value || '').trim();
+  const to = (toEl.value || '').trim();
+  if (!from || !to) return;
+  learnPattern(from, to);
+  fromEl.value = '';
+  toEl.value = '';
+  renderVocabList();
+}
+
+// ---- Copy translation ----
+async function copyTranslation() {
+  const text = document.getElementById('tOutput').textContent;
+  if (!text) return;
+  const btn = document.getElementById('copyBtn');
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Copied';
+  } catch (_) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓ Copied';
+  }
+  setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
+}
+
 // Expose functions to inline onclick/onchange handlers (required under type="module")
 window.toggleListen = toggleListen;
 window.saveCorrection = saveCorrection;
@@ -1042,6 +1197,9 @@ window.closeLangModal = closeLangModal;
 window.switchTab = switchTab;
 window.liveTranslate = liveTranslate;
 window.toggleTranslateMic = toggleTranslateMic;
+window.applySuggestion = applySuggestion;
+window.addDictEntry = addDictEntry;
+window.copyTranslation = copyTranslation;
 </script>
 </body>
 </html>
