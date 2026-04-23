@@ -247,14 +247,6 @@
   }
   .translate-area:focus { outline: none; border-color: var(--green); }
   .translate-area::placeholder { color: var(--text3); }
-  .translate-mic {
-    display: flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; border-radius: 50%;
-    border: 0.5px solid var(--border2); background: var(--bg);
-    cursor: pointer; font-size: 20px; flex-shrink: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .translate-mic.on { border-color: var(--green); background: var(--green-bg); }
   .input-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 1rem; }
   .result-card {
     background: var(--bg2); border-radius: var(--radius);
@@ -320,17 +312,7 @@
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
   .practice-hear:active { background: var(--bg3); }
-  .practice-mic {
-    width: 72px; height: 72px; border-radius: 50%;
-    border: 2px solid var(--border2); background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-    font-size: 28px; margin: 1rem auto;
-    transition: all 0.2s;
-  }
-  .practice-mic.listening { border-color: var(--green); background: var(--green-bg); animation: pulse-border 1.2s ease-in-out infinite; }
-  @keyframes pulse-border { 0%,100%{box-shadow:0 0 0 0 rgba(29,158,117,0.3)} 50%{box-shadow:0 0 0 10px rgba(29,158,117,0)} }
-  .practice-mic-label { font-size: 13px; color: var(--text3); margin-bottom: 1rem; }
+  .practice-mic-label { font-size: 13px; color: var(--text3); margin-bottom: 0.25rem; text-align: center; }
   .practice-result {
     padding: 1rem; border-radius: var(--radius-sm);
     margin-bottom: 1rem; text-align: center; display: none;
@@ -455,7 +437,15 @@
   <div class="section-hd" style="margin-bottom:10px;">speak or type your message</div>
   <div class="input-row">
     <textarea id="translateInput" class="translate-area" placeholder="Type here, or tap the mic to speak..." rows="3" oninput="liveTranslate()"></textarea>
-    <button class="translate-mic" id="tMicBtn" onclick="toggleTranslateMic()">🎤</button>
+    <div class="mic-wrap" style="width:50px; height:50px;">
+      <div class="mic-btn" id="tMicBtn" onclick="toggleTranslateMic()" style="width:44px; height:44px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;">
+          <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      </div>
+      <div class="pulse-ring" id="tPulseRing" style="width:44px; height:44px;"></div>
+    </div>
   </div>
 
   <div id="tResult" style="display:none;">
@@ -513,7 +503,24 @@
   </div>
 
   <div class="practice-mic-label" id="pMicLabel">tap to try saying it</div>
-  <div class="practice-mic" id="pMicBtn" onclick="togglePracticeMic()">🎤</div>
+  <div class="mic-section" style="margin-bottom:0.5rem;">
+    <div class="mic-wrap">
+      <div class="mic-btn" id="pMicBtn" onclick="togglePracticeMic()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      </div>
+      <div class="pulse-ring" id="pPulseRing"></div>
+    </div>
+    <div class="waveform" id="pWave">
+      <div class="wb" style="height:6px"></div><div class="wb" style="height:11px"></div>
+      <div class="wb" style="height:18px"></div><div class="wb" style="height:8px"></div>
+      <div class="wb" style="height:22px"></div><div class="wb" style="height:13px"></div>
+      <div class="wb" style="height:7px"></div><div class="wb" style="height:16px"></div>
+      <div class="wb" style="height:10px"></div>
+    </div>
+  </div>
 
   <div class="practice-result" id="pResult">
     <div class="result-icon" id="pIcon"></div>
@@ -1182,7 +1189,7 @@ function startTranslateMic() {
   tRec.interimResults = true;
   tRec.lang = currentLang;
   const btn = document.getElementById('tMicBtn');
-  tRec.onstart = () => { tListening = true; btn.classList.add('on'); btn.textContent = '⏹'; };
+  tRec.onstart = () => { tListening = true; btn.classList.add('on'); };
   tRec.onresult = (e) => {
     let text = '';
     for (let i = 0; i < e.results.length; i++) text = e.results[i][0].transcript;
@@ -1199,7 +1206,6 @@ function stopTranslateMic() {
   tListening = false;
   const btn = document.getElementById('tMicBtn');
   btn.classList.remove('on');
-  btn.textContent = '🎤';
 }
 
 function renderVocabList() {
@@ -1364,7 +1370,7 @@ function showPracticeItem() {
   document.getElementById('pTarget').textContent = item;
   document.getElementById('pResult').className = 'practice-result';
   document.getElementById('pMicLabel').textContent = 'tap to try saying it';
-  document.getElementById('pMicBtn').classList.remove('listening');
+  document.getElementById('pMicBtn').classList.remove('on');
   // Show pronunciation tip
   showPronunciationTip(item);
   updatePracticeStats();
@@ -1443,9 +1449,16 @@ function startPracticeMic() {
   pRec.interimResults = true;
   pRec.lang = currentLang;
   const btn = document.getElementById('pMicBtn');
+  const pWaveEl = document.getElementById('pWave');
+  const pWaveBars = pWaveEl.querySelectorAll('.wb');
+  let pWaveTimer;
   pRec.onstart = () => {
     pListening = true;
-    btn.classList.add('listening');
+    btn.classList.add('on');
+    pWaveEl.classList.add('live');
+    pWaveTimer = setInterval(() => {
+      pWaveBars.forEach((b,i) => { b.style.height = Math.round(baseH[i] + Math.random()*14) + 'px'; });
+    }, 100);
     document.getElementById('pMicLabel').textContent = 'listening...';
     document.getElementById('pResult').className = 'practice-result';
   };
@@ -1465,7 +1478,11 @@ function startPracticeMic() {
 function stopPracticeMic() {
   if (pRec) { pRec.onend = null; try { pRec.stop(); } catch(_) {} }
   pListening = false;
-  document.getElementById('pMicBtn').classList.remove('listening');
+  const btn = document.getElementById('pMicBtn');
+  btn.classList.remove('on');
+  const pWaveEl = document.getElementById('pWave');
+  pWaveEl.classList.remove('live');
+  pWaveEl.querySelectorAll('.wb').forEach((b,i) => b.style.height = baseH[i] + 'px');
 }
 
 function checkPracticeResult(heard, target) {
