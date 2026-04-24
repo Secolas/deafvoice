@@ -2,386 +2,993 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="apple-mobile-web-app-title" content="ClearVoice"/>
-<title>ClearVoice — Personal Trainer</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Deaf Voice"/>
+<meta name="theme-color" content="#0f172a"/>
+<title>Deaf Voice — Personal Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #ffffff;
-    --bg2: #f5f5f3;
-    --bg3: #eeede9;
-    --text: #1a1a18;
-    --text2: #6b6b66;
-    --text3: #a0a09a;
-    --border: rgba(0,0,0,0.12);
-    --border2: rgba(0,0,0,0.22);
-    --green: #1D9E75;
-    --green-bg: #E1F5EE;
-    --green-dark: #0F6E56;
-    --amber: #BA7517;
-    --amber-bg: #FAEEDA;
-    --red: #A32D2D;
-    --red-bg: #FCEBEB;
-    --blue: #185FA5;
-    --blue-bg: #E6F1FB;
-    --purple: #6b3dbf;
-    --purple-bg: #efe6fb;
-    --radius: 12px;
+    /* Direction B — Studio tokens */
+    --bg: #0f172a;
+    --bg2: #1e293b;
+    --bg3: #334155;
+    --bg-subtle: rgba(15, 23, 42, 0.5);
+    --text: #f1f5f9;
+    --text2: #e2e8f0;
+    --text3: #94a3b8;
+    --text4: #64748b;
+    --border: rgba(148, 163, 184, 0.15);
+    --border2: rgba(148, 163, 184, 0.25);
+    --accent: #818cf8;
+    --accent-dark: #1e1b4b;
+    --accent-bg: rgba(129, 140, 248, 0.14);
+    --indigo-deep: #312e81;
+    --purple: #a855f7;
+    --purple-soft: #c4b5fd;
+    --purple-bg: rgba(168, 85, 247, 0.18);
+    --pink: #ec4899;
+    --green: #34d399;
+    --green-bg: rgba(52, 211, 153, 0.15);
+    --green-dark: #34d399;
+    --amber: #fbbf24;
+    --amber-bg: rgba(251, 191, 36, 0.18);
+    --red: #f87171;
+    --red-bg: rgba(248, 113, 113, 0.18);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96, 165, 250, 0.18);
+
+    --radius: 24px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
     --radius-sm: 8px;
+    --radius-xs: 6px;
+
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-float: 0 10px 30px rgba(0,0,0,0.4);
+    --shadow-indigo: 0 10px 15px -3px rgba(99,102,241,0.2), 0 4px 6px -4px rgba(99,102,241,0.15);
+
+    --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Fredoka', 'Nunito', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --gradient-hero: linear-gradient(135deg, #312e81 0%, #6b21a8 100%);
+    --gradient-xp: linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1c1c1a;
-      --bg2: #252523;
-      --bg3: #2e2e2b;
-      --text: #f0efe8;
-      --text2: #9a9a94;
-      --text3: #636360;
-      --border: rgba(255,255,255,0.1);
-      --border2: rgba(255,255,255,0.2);
-      --green-bg: #0a2e20;
-      --green-dark: #4fcfa0;
-      --amber-bg: #2e2000;
-      --red-bg: #2e0a0a;
-      --blue-bg: #0a1e35;
-      --purple: #b99ce8;
-      --purple-bg: #2a1d3f;
-    }
-  }
-
+  html, body { height: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-body);
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding-bottom: 2rem;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 92px);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
-  header {
-    background: var(--bg);
-    border-bottom: 0.5px solid var(--border);
-    padding: 1rem 1.25rem 0.875rem;
-    position: sticky; top: 0; z-index: 10;
-    display: flex; align-items: center; justify-content: space-between;
+  /* Ambient gradient glow (lives behind everything) */
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(600px circle at 15% -10%, rgba(99,102,241,0.18), transparent 60%),
+      radial-gradient(500px circle at 95% 110%, rgba(168,85,247,0.14), transparent 60%);
   }
-  .logo { font-size: 18px; font-weight: 600; color: var(--text); }
-  .logo span { color: var(--green); }
+
+  /* HEADER */
+  header {
+    position: sticky; top: 0; z-index: 30;
+    padding: calc(env(safe-area-inset-top) + 12px) 20px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(15,23,42,0.92), rgba(15,23,42,0.55) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 600;
+    color: var(--text); letter-spacing: -0.3px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo-mark {
+    width: 28px; height: 28px; border-radius: 9px;
+    background: var(--gradient-hero);
+    display: grid; place-items: center;
+    color: #fff; font-weight: 800; font-size: 14px;
+    box-shadow: var(--shadow-indigo);
+  }
+  .logo span { color: var(--accent); }
   .header-right { display: flex; align-items: center; gap: 8px; }
   .lang-pill {
-    padding: 4px 10px; font-size: 12px; border-radius: 20px;
-    border: 0.5px solid var(--border2); background: var(--bg2);
-    color: var(--text2); cursor: pointer;
+    padding: 6px 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--accent-bg);
+    color: var(--accent);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .lang-pill:active { transform: scale(0.96); }
+
+  /* LAYOUT */
+  .app-main {
+    position: relative; z-index: 1;
+    max-width: 600px; margin: 0 auto;
+    padding: 8px 16px 32px;
+  }
+  .view { display: none; }
+  .view.active { display: block; animation: fade 0.2s ease-out; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 28px; font-weight: 600; letter-spacing: -0.5px;
+    margin: 4px 4px 16px; color: var(--text);
+  }
+  .page-sub { font-size: 13px; color: var(--text3); margin: -10px 4px 14px; }
+
+  .section-hd {
+    font-size: 11px; font-weight: 800; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin: 18px 4px 10px;
   }
 
-  .main { max-width: 600px; margin: 0 auto; padding: 1.25rem 1rem; }
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .card.tight { padding: 14px 16px; border-radius: var(--radius-lg); }
 
-  /* MIC */
-  .mic-section { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 1.25rem; }
-  .mic-wrap { position: relative; display: flex; align-items: center; justify-content: center; width: 88px; height: 88px; }
+  /* LIVE CAPTION (Record) */
+  .caption-card {
+    position: relative;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .caption-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .caption-label {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.6px;
+    color: var(--text3); text-transform: uppercase;
+  }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; font-size: 11px; font-weight: 800;
+    letter-spacing: 0.4px; border-radius: 999px;
+    background: rgba(148,163,184,0.15); color: var(--text3);
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .status-pill.on { background: var(--green-bg); color: var(--green); }
+  .status-pill .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor;
+  }
+  .status-pill.on .dot { animation: live-dot 1.4s ease-in-out infinite; }
+  @keyframes live-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .live-text {
+    font-family: var(--font-body);
+    font-size: 22px; font-weight: 700;
+    line-height: 1.38; color: var(--text);
+    min-height: 60px; letter-spacing: -0.2px;
+  }
+  .interim { color: var(--text3); font-weight: 500; }
+  .placeholder { font-size: 16px; color: var(--text3); font-weight: 500; }
+
+  .conf-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .conf-label {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.6px;
+    color: var(--text3); text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .conf-track { flex: 1; height: 6px; background: rgba(148,163,184,0.15); border-radius: 999px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width .4s, background .4s; }
+  .conf-pct {
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 700;
+    color: var(--text); min-width: 36px; text-align: right;
+  }
+
+  /* MIC SECTION */
+  .mic-section {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 14px; margin: 18px 0;
+  }
+  .mic-wrap {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    width: 96px; height: 96px;
+  }
   .mic-btn {
-    width: 80px; height: 80px; border-radius: 50%;
-    border: 2px solid var(--border2); background: var(--bg);
+    width: 88px; height: 88px; border-radius: 50%;
+    border: none;
+    background: var(--bg2);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
-    transition: all 0.2s; position: relative; z-index: 2;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    position: relative; z-index: 2;
+    box-shadow: 0 0 0 1px var(--border), 0 6px 16px rgba(0,0,0,0.35);
   }
-  .mic-btn.on { border-color: var(--green); background: var(--green-bg); }
-  .mic-btn svg { width: 30px; height: 30px; stroke: var(--text2); }
-  .mic-btn.on svg { stroke: var(--green); }
+  .mic-btn:active { transform: scale(0.96); }
+  .mic-btn.on {
+    background: var(--accent);
+    box-shadow:
+      0 0 0 8px rgba(129, 140, 248, 0.18),
+      0 10px 24px rgba(129, 140, 248, 0.45);
+  }
+  .mic-btn svg { width: 32px; height: 32px; stroke: var(--text3); transition: stroke 0.2s; }
+  .mic-btn.on svg { stroke: #fff; }
+
   .pulse-ring {
-    position: absolute; width: 80px; height: 80px; border-radius: 50%;
-    border: 2px solid var(--green); opacity: 0; z-index: 1;
+    position: absolute; width: 88px; height: 88px; border-radius: 50%;
+    border: 2px solid var(--accent); opacity: 0; z-index: 1;
   }
-  .mic-btn.on ~ .pulse-ring { animation: pls 1.4s ease-out infinite; }
-  @keyframes pls { 0%{transform:scale(1);opacity:.5} 100%{transform:scale(1.8);opacity:0} }
+  .mic-btn.on ~ .pulse-ring { animation: pls 1.6s ease-out infinite; }
+  @keyframes pls { 0%{transform:scale(1);opacity:.45} 100%{transform:scale(1.85);opacity:0} }
 
-  .waveform { display: flex; align-items: center; gap: 3px; height: 28px; }
-  .wb { width: 3px; border-radius: 2px; background: var(--border2); transition: height 0.1s; }
-  .waveform.live .wb { background: var(--green); }
-
-  .status { font-size: 14px; color: var(--text3); }
-  .status.on { color: var(--green); font-weight: 600; }
-
-  /* TRANSCRIPT */
-  .transcript-card {
-    background: var(--bg2); border-radius: var(--radius);
-    border: 0.5px solid var(--border); padding: 1rem 1.125rem;
-    min-height: 96px; margin-bottom: 1rem;
+  /* WAVEFORM */
+  .waveform {
+    display: flex; align-items: center; gap: 3px; height: 32px;
+    padding: 0 6px;
   }
-  .live-text { font-size: 22px; font-weight: 400; line-height: 1.45; color: var(--text); min-height: 64px; }
-  .interim { color: var(--text3); }
-  .placeholder { font-size: 16px; color: var(--text3); }
-  .conf-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); }
-  .conf-label { font-size: 11px; color: var(--text3); white-space: nowrap; }
-  .conf-track { flex:1; height: 4px; background: var(--border); border-radius: 2px; }
-  .conf-fill { height: 4px; border-radius: 2px; transition: width .4s, background .4s; }
-  .conf-pct { font-size: 12px; font-weight: 600; color: var(--text); min-width: 34px; text-align: right; }
+  .wb {
+    width: 3px; min-height: 3px; border-radius: 2px;
+    background: var(--border2); transition: height 0.1s;
+  }
+  .waveform.live .wb { background: var(--accent); }
 
-  /* STATS */
-  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1.25rem; }
-  .stat { background: var(--bg2); border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
-  .stat-n { font-size: 24px; font-weight: 600; color: var(--text); }
-  .stat-l { font-size: 11px; color: var(--text2); margin-top: 2px; line-height: 1.3; }
+  .status {
+    font-size: 12px; font-weight: 800; letter-spacing: 0.5px;
+    color: var(--text3); text-transform: uppercase;
+  }
+  .status.on { color: var(--green); }
+
+  /* STATS GRID */
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin: 14px 0 8px;
+  }
+  .stat {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 10px; text-align: center;
+  }
+  .stat-n {
+    font-family: var(--font-display);
+    font-size: 26px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .stat-l {
+    font-size: 10px; font-weight: 800; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    margin-top: 4px; line-height: 1.3;
+  }
+
+  /* ACTIONS ROW */
+  .actions {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px; margin: 14px 0 4px;
+  }
+  .action-btn {
+    padding: 11px 10px; font-size: 13px; font-weight: 700;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg2); color: var(--text2);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, transform 0.1s;
+    font-family: var(--font-body);
+  }
+  .action-btn:active { background: var(--bg3); transform: scale(0.98); }
 
   /* ENTRIES */
-  .section-hd { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
-  .entries { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+  .entries { display: flex; flex-direction: column; gap: 10px; }
   .entry {
-    background: var(--bg); border: 0.5px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
   }
-  .entry-top { padding: 10px 12px 6px; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-  .entry-heard { font-size: 15px; color: var(--text); flex: 1; line-height: 1.5; }
-  .badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
-  .badge.hi { background: var(--green-bg); color: var(--green-dark); }
+  .entry-top {
+    padding: 12px 14px 8px;
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 10px;
+  }
+  .entry-heard {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    flex: 1; line-height: 1.45;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.3px;
+    padding: 3px 9px; border-radius: 999px;
+    white-space: nowrap; text-transform: uppercase;
+  }
+  .badge.hi { background: var(--green-bg); color: var(--green); }
   .badge.mid { background: var(--amber-bg); color: var(--amber); }
   .badge.lo { background: var(--red-bg); color: var(--red); }
   .badge.saved { background: var(--blue-bg); color: var(--blue); }
-  .badge.learned { background: var(--purple-bg); color: var(--purple); }
+  .badge.learned { background: var(--purple-bg); color: var(--purple-soft); }
 
-  .entry-correct { padding: 4px 10px 10px; display: flex; gap: 6px; }
+  .entry-correct {
+    padding: 4px 12px 12px;
+    display: flex; gap: 6px; align-items: center;
+  }
   .correct-input {
-    flex: 1; padding: 8px 10px; font-size: 14px;
-    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
-    background: var(--bg2); color: var(--text);
+    flex: 1; padding: 9px 12px; font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle); color: var(--text);
     -webkit-appearance: none; appearance: none;
+    font-family: var(--font-body);
   }
-  .correct-input:focus { outline: none; border-color: var(--green); }
-  .correct-input::placeholder { color: var(--text3); }
+  .correct-input:focus { outline: none; border-color: var(--accent); }
+  .correct-input::placeholder { color: var(--text4); }
   .save-btn {
-    padding: 8px 14px; font-size: 14px; font-weight: 500;
-    border: 0.5px solid var(--green); border-radius: var(--radius-sm);
-    background: var(--green-bg); color: var(--green-dark);
+    padding: 9px 14px; font-size: 13px; font-weight: 800;
+    border: none; border-radius: var(--radius-md);
+    background: var(--accent); color: var(--accent-dark);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
-    transition: all 0.15s;
+    transition: transform 0.1s, opacity 0.15s;
+    font-family: var(--font-body);
   }
-  .save-btn:active { opacity: 0.7; transform: scale(0.97); }
+  .save-btn:active { opacity: 0.8; transform: scale(0.96); }
 
   .confirm-btn {
-    padding: 8px 12px; font-size: 16px; font-weight: 700; line-height: 1;
-    border: 0.5px solid var(--green); border-radius: var(--radius-sm);
-    background: var(--green); color: #fff;
+    padding: 9px 12px; font-size: 15px; font-weight: 800;
+    border: none; border-radius: var(--radius-md);
+    background: var(--green-bg); color: var(--green);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
-    transition: all 0.15s;
+    transition: transform 0.1s, opacity 0.15s;
   }
-  .confirm-btn:active { opacity: 0.7; transform: scale(0.97); }
+  .confirm-btn:active { opacity: 0.8; transform: scale(0.96); }
 
   .del-btn {
-    background: none; border: none; padding: 2px 6px;
-    font-size: 20px; line-height: 1; color: var(--text3);
+    background: none; border: none; padding: 2px 8px;
+    font-size: 20px; line-height: 1; color: var(--text4);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s;
   }
   .del-btn:hover, .del-btn:active { color: var(--red); }
 
-  .corrected-row { padding: 0 12px 10px; font-size: 13px; color: var(--blue); font-style: italic; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .corrected-row {
+    padding: 2px 14px 12px;
+    font-size: 12px; color: var(--blue);
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .corrected-row .mono { font-family: var(--font-mono); color: var(--text3); }
 
-  /* ACTIONS */
-  .actions { display: flex; gap: 8px; margin-bottom: 1.5rem; }
-  .action-btn {
-    flex: 1; padding: 10px 8px; font-size: 13px;
-    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
-    background: var(--bg); color: var(--text2);
+  .suggest-row {
+    padding: 4px 12px 8px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .suggest-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; }
+  .suggest-btn {
+    padding: 6px 12px; font-size: 13px; font-weight: 700;
+    border: 1px solid var(--purple);
+    border-radius: var(--radius-md);
+    background: var(--purple-bg); color: var(--purple-soft);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
-    transition: all 0.15s;
+    transition: transform 0.1s, opacity 0.15s;
+    font-family: var(--font-body);
   }
-  .action-btn:active { background: var(--bg2); }
+  .suggest-btn:active { opacity: 0.8; transform: scale(0.97); }
 
-  /* MODAL */
-  .modal-bg {
-    display: none; position: fixed; inset: 0; z-index: 50;
-    background: rgba(0,0,0,0.5); align-items: flex-end; justify-content: center;
+  /* TRANSLATE VIEW */
+  .input-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    margin-bottom: 12px;
   }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: var(--bg); border-radius: 16px 16px 0 0;
-    padding: 1.5rem 1.25rem 2rem; width: 100%; max-width: 600px;
+  .input-label {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.6px;
+    color: var(--text3); text-transform: uppercase;
+    margin-bottom: 8px;
   }
-  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 1rem; }
-  .modal select {
-    width: 100%; padding: 10px 12px; font-size: 15px;
-    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
-    background: var(--bg2); color: var(--text); margin-bottom: 1rem;
+  .input-row {
+    display: flex; gap: 10px; align-items: flex-end;
+  }
+  .translate-area {
+    flex: 1; width: 100%; padding: 10px 12px;
+    font-size: 15px; line-height: 1.5; min-height: 72px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle); color: var(--text);
+    resize: vertical;
+    font-family: var(--font-body);
     -webkit-appearance: none; appearance: none;
   }
+  .translate-area:focus { outline: none; border-color: var(--accent); }
+  .translate-area::placeholder { color: var(--text4); }
+
+  .arrow-row {
+    display: flex; justify-content: center;
+    color: var(--accent); font-size: 22px; font-weight: 800;
+    margin: 4px 0 6px;
+  }
+
+  .result-card {
+    position: relative;
+    background: var(--gradient-hero);
+    border: 1px solid rgba(129,140,248,0.35);
+    border-radius: var(--radius);
+    padding: 16px 18px 14px;
+    box-shadow: var(--shadow-indigo);
+    margin-bottom: 12px;
+  }
+  .result-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .result-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; font-size: 11px; font-weight: 800;
+    letter-spacing: 0.4px; border-radius: 999px;
+    background: rgba(255,255,255,0.15); color: #fff;
+    text-transform: uppercase;
+  }
+  .result-text {
+    font-family: var(--font-body);
+    font-size: 22px; font-weight: 700;
+    line-height: 1.38; color: #fff;
+    letter-spacing: -0.2px;
+  }
+  .result-original {
+    font-family: var(--font-mono);
+    font-size: 12px; color: rgba(241,245,249,0.65);
+    margin-top: 8px;
+  }
+  .copy-btn {
+    margin-top: 10px; padding: 8px 14px;
+    font-size: 13px; font-weight: 700;
+    border: none; border-radius: var(--radius-md);
+    background: #fff; color: var(--accent-dark);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s, opacity 0.15s;
+    font-family: var(--font-body);
+  }
+  .copy-btn:active { opacity: 0.85; transform: scale(0.97); }
+
+  .change-item {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 10px 4px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .change-item:last-child { border-bottom: none; }
+  .change-from {
+    font-family: var(--font-mono);
+    text-decoration: line-through;
+    color: var(--text4);
+  }
+  .change-arrow { color: var(--text4); }
+  .change-to { color: var(--purple-soft); font-weight: 700; }
+
+  .coverage-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px; margin-top: 12px;
+  }
+  .coverage-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 8px; font-weight: 700; }
+  .coverage-label strong { color: var(--text); font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .coverage-track { height: 6px; background: rgba(148,163,184,0.15); border-radius: 999px; overflow: hidden; }
+  .coverage-fill { height: 100%; border-radius: 999px; background: var(--gradient-xp); transition: width .4s; }
+
+  .dict-row {
+    display: flex; gap: 8px; align-items: center;
+    flex-wrap: wrap; margin-bottom: 10px;
+  }
+  .dict-input {
+    flex: 1; min-width: 100px; padding: 10px 12px;
+    font-size: 14px; border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle); color: var(--text);
+    font-family: var(--font-body);
+    -webkit-appearance: none; appearance: none;
+  }
+  .dict-input:focus { outline: none; border-color: var(--accent); }
+  .dict-input::placeholder { color: var(--text4); }
+  .dict-arrow { color: var(--text4); font-size: 16px; }
+
+  /* PRACTICE VIEW */
+  .level-tabs {
+    display: flex; gap: 4px; padding: 4px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .level-tab {
+    flex: 1; padding: 9px 4px;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.3px;
+    border: none; border-radius: 999px;
+    background: transparent; color: var(--text3);
+    cursor: pointer; text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+  }
+  .level-tab.active { background: var(--accent); color: var(--accent-dark); }
+
+  .streak-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-bottom: 14px;
+  }
+  .streak-cell {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 10px; text-align: center;
+  }
+  .streak-num {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.4px;
+  }
+  .streak-label {
+    font-size: 10px; font-weight: 800; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    margin-top: 4px;
+  }
+
+  .practice-card {
+    position: relative;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    text-align: center;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .practice-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(400px circle at 50% 0%, rgba(129,140,248,0.10), transparent 60%);
+    pointer-events: none;
+  }
+  .practice-level {
+    position: relative;
+    display: inline-block;
+    padding: 3px 10px; font-size: 10px; font-weight: 800;
+    letter-spacing: 0.5px; border-radius: 999px;
+    background: var(--purple-bg); color: var(--purple-soft);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .practice-target {
+    position: relative;
+    font-family: var(--font-display);
+    font-size: 30px; font-weight: 700; letter-spacing: -0.5px;
+    color: var(--text); line-height: 1.25;
+    margin-bottom: 12px;
+  }
+  .practice-hear {
+    position: relative;
+    padding: 8px 16px; font-size: 13px; font-weight: 700;
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    background: var(--bg-subtle); color: var(--text2);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s, background 0.15s;
+    font-family: var(--font-body);
+  }
+  .practice-hear:active { background: var(--bg3); transform: scale(0.97); }
+
+  .practice-tip {
+    position: relative;
+    font-size: 13px; color: var(--text3);
+    margin-top: 12px; line-height: 1.5;
+    min-height: 20px;
+    padding: 0 6px;
+  }
+  .practice-tip strong { color: var(--accent); font-weight: 700; }
+
+  .practice-mic-label {
+    font-size: 12px; font-weight: 800; letter-spacing: 0.4px;
+    color: var(--text3); text-transform: uppercase;
+    text-align: center; margin-bottom: 4px;
+  }
+
+  .practice-result {
+    padding: 14px 16px; border-radius: var(--radius-lg);
+    margin: 8px 0 14px; text-align: center; display: none;
+    border: 1px solid transparent;
+  }
+  .practice-result.pass {
+    display: block;
+    background: var(--green-bg);
+    border-color: rgba(52,211,153,0.3);
+  }
+  .practice-result.fail {
+    display: block;
+    background: var(--red-bg);
+    border-color: rgba(248,113,113,0.3);
+  }
+  .result-icon { font-size: 28px; margin-bottom: 4px; }
+  .result-msg { font-size: 14px; font-weight: 800; color: var(--text); letter-spacing: 0.2px; }
+  .practice-result.pass .result-msg { color: var(--green); }
+  .practice-result.fail .result-msg { color: var(--red); }
+  .result-heard {
+    font-family: var(--font-mono);
+    font-size: 12px; color: var(--text3); margin-top: 6px;
+  }
+
+  .practice-nav { display: flex; gap: 10px; margin-bottom: 16px; }
+  .practice-nav-btn {
+    flex: 1; padding: 13px 18px;
+    font-size: 14px; font-weight: 800; letter-spacing: 0.3px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-md);
+    background: var(--bg2); color: var(--text2);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s, background 0.15s;
+    font-family: var(--font-body);
+  }
+  .practice-nav-btn:active { transform: scale(0.97); background: var(--bg3); }
+  .practice-nav-btn.primary {
+    border: none;
+    background: var(--accent);
+    color: var(--accent-dark);
+  }
+
+  .progress-list { display: flex; flex-direction: column; gap: 8px; }
+  .progress-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: var(--bg2);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+  .progress-word { font-size: 14px; color: var(--text); flex: 1; font-weight: 600; }
+  .progress-streak { font-size: 12px; color: var(--text3); font-family: var(--font-mono); }
+  .mastered-badge {
+    display: inline-block; padding: 2px 8px;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.4px;
+    border-radius: 999px;
+    background: var(--green-bg); color: var(--green);
+    text-transform: uppercase;
+  }
+
+  /* PROGRESS VIEW */
+  .hero-card {
+    position: relative;
+    background: var(--gradient-hero);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-indigo);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .hero-label {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+    color: rgba(241,245,249,0.75); text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hero-num {
+    font-family: var(--font-display);
+    font-size: 56px; font-weight: 600; color: #fff;
+    letter-spacing: -2px; line-height: 1;
+  }
+  .hero-trend {
+    font-size: 13px; font-weight: 700; color: var(--purple-soft);
+    margin-top: 6px;
+  }
+
+  .bars-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 16px 12px;
+    margin-bottom: 14px;
+  }
+  .bars-title {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+    color: var(--text3); text-transform: uppercase; margin-bottom: 12px;
+  }
+  .bars-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 4px; align-items: end; height: 110px; margin-bottom: 8px;
+  }
+  .bar {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    height: 100%; justify-content: flex-end;
+  }
+  .bar-pct { font-size: 10px; font-weight: 800; color: var(--text3); }
+  .bar-fill {
+    width: 100%; border-radius: 6px 6px 0 0;
+    background: rgba(148,163,184,0.25);
+    min-height: 4px;
+  }
+  .bar.today .bar-fill { background: var(--gradient-xp); }
+  .bar.today .bar-pct { color: var(--accent); }
+  .bars-labels {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.4px;
+    color: var(--text4); text-transform: uppercase; text-align: center;
+  }
+
+  .stat-grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 14px;
+  }
+  .stat-lg {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 14px 12px;
+  }
+  .stat-lg .n {
+    font-family: var(--font-display);
+    font-size: 30px; font-weight: 600;
+    color: var(--accent); letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .stat-lg .l {
+    font-size: 11px; font-weight: 800; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    margin-top: 6px; line-height: 1.3;
+  }
+
+  /* SETTINGS VIEW */
+  .settings-group {
+    margin-top: 18px;
+  }
+  .settings-group-hd {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.6px;
+    color: var(--text3); text-transform: uppercase;
+    margin: 0 4px 8px;
+  }
+  .settings-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .setting-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+    min-height: 52px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row:active { background: var(--bg3); }
+  .setting-label {
+    flex: 1; font-size: 15px; font-weight: 600; color: var(--text);
+  }
+  .setting-value {
+    font-size: 13px; color: var(--text3); font-weight: 600;
+  }
+  .setting-chev { color: var(--text4); font-size: 16px; }
+  .setting-row.danger .setting-label { color: var(--red); }
+
+  .toggle {
+    position: relative;
+    width: 44px; height: 26px;
+    border-radius: 14px;
+    background: rgba(148,163,184,0.3);
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle.on::after { transform: translateX(18px); }
+
+  /* BOTTOM NAVIGATION (pill) */
+  .bottom-nav {
+    position: fixed;
+    left: 16px; right: 16px;
+    bottom: calc(env(safe-area-inset-bottom) + 12px);
+    z-index: 40;
+    max-width: 568px;
+    margin: 0 auto;
+    display: flex; gap: 4px;
+    padding: 6px;
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--shadow-float);
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px;
+    padding: 7px 4px;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.3px;
+    border: none; border-radius: 999px;
+    background: transparent; color: var(--text3);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    min-height: 46px;
+  }
+  .nav-btn svg {
+    width: 20px; height: 20px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .nav-btn.active { background: var(--accent); color: var(--accent-dark); }
+
+  /* MODALS */
+  .modal-bg {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7);
+    align-items: flex-end; justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .modal-bg.open { display: flex; animation: modal-fade 0.2s ease-out; }
+  @keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    padding: 18px 20px calc(env(safe-area-inset-bottom) + 24px);
+    width: 100%; max-width: 600px;
+    animation: modal-slide 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes modal-slide { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--border2);
+    margin: -4px auto 14px;
+  }
+  .modal h3 {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 600;
+    margin-bottom: 14px; color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .modal select {
+    width: 100%; padding: 12px 14px; font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle); color: var(--text);
+    margin-bottom: 14px;
+    font-family: var(--font-body);
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+  }
   .modal-close {
-    width: 100%; padding: 12px; font-size: 15px; font-weight: 500;
-    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
-    background: var(--bg2); color: var(--text); cursor: pointer;
+    width: 100%; padding: 13px; font-size: 15px; font-weight: 800;
+    border: none; border-radius: var(--radius-md);
+    background: var(--accent); color: var(--accent-dark);
+    cursor: pointer;
+    font-family: var(--font-body);
+    letter-spacing: 0.2px;
   }
 
   /* NO SUPPORT */
   .no-support {
-    text-align: center; padding: 2rem 1rem; color: var(--text2); font-size: 15px;
-    border: 0.5px solid var(--border); border-radius: var(--radius); margin: 2rem 0;
-    line-height: 1.7;
+    text-align: center; padding: 28px 20px;
+    color: var(--text3); font-size: 14px;
+    line-height: 1.6;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 16px 0;
   }
-  .no-support strong { color: var(--text); }
+  .no-support strong { color: var(--text); font-weight: 700; }
 
-  /* TABS */
-  .tabs {
-    display: flex; max-width: 600px; margin: 0 auto;
-    border-bottom: 0.5px solid var(--border);
+  /* MOCHI — Shiba mascot */
+  .shiba {
+    position: absolute; pointer-events: none;
+    z-index: 2; line-height: 0;
   }
-  .tab {
-    flex: 1; padding: 12px 8px; font-size: 14px; font-weight: 600;
-    border: none; border-bottom: 2.5px solid transparent;
-    background: none; color: var(--text3); cursor: pointer;
-    text-align: center; -webkit-tap-highlight-color: transparent;
-  }
-  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .shiba.hero { top: 6px; right: 10px; }
+  .shiba.practice { top: 10px; right: 10px; opacity: 0.98; }
+  .shiba svg { display: block; overflow: visible; }
 
-  /* TRANSLATE VIEW */
-  .translate-area {
-    width: 100%; padding: 12px; font-size: 16px; line-height: 1.5;
-    border: 0.5px solid var(--border2); border-radius: var(--radius);
-    background: var(--bg2); color: var(--text); resize: vertical;
-    font-family: inherit; min-height: 80px;
-    -webkit-appearance: none; appearance: none;
+  /* PROFILE CARD (Settings) */
+  .profile-card {
+    position: relative;
+    background: var(--gradient-hero);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-indigo);
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 18px;
+    overflow: hidden;
   }
-  .translate-area:focus { outline: none; border-color: var(--green); }
-  .translate-area::placeholder { color: var(--text3); }
-  .input-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 1rem; }
-  .result-card {
-    background: var(--bg2); border-radius: var(--radius);
-    border: 0.5px solid var(--border); padding: 1rem 1.125rem;
-    margin-bottom: 1rem;
+  .profile-avatar { width: 72px; height: 72px; flex-shrink: 0; line-height: 0; }
+  .profile-info { flex: 1; color: #fff; min-width: 0; }
+  .profile-name {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 600; letter-spacing: -0.3px;
+    color: #fff;
   }
-  .result-text { font-size: 20px; line-height: 1.5; color: var(--text); }
-  .result-original { font-size: 14px; color: var(--text3); margin-top: 8px; }
-  .change-item {
-    display: flex; gap: 8px; align-items: baseline; padding: 6px 0;
-    font-size: 14px; border-bottom: 0.5px solid var(--border);
+  .profile-level {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.4px;
+    text-transform: uppercase; color: rgba(241,245,249,0.8);
+    margin-top: 2px;
   }
-  .change-from { text-decoration: line-through; color: var(--text3); }
-  .change-to { color: var(--purple); font-weight: 500; }
-  .change-arrow { color: var(--text3); }
-  .coverage-bar { margin-top: 1rem; }
-  .coverage-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
-  .coverage-track { height: 6px; background: var(--border); border-radius: 3px; }
-  .coverage-fill { height: 6px; border-radius: 3px; background: var(--purple); transition: width .4s; }
+  .profile-xp-track {
+    height: 5px; background: rgba(255,255,255,0.2);
+    border-radius: 999px; margin-top: 10px; overflow: hidden;
+  }
+  .profile-xp-fill {
+    height: 100%; background: #fff;
+    border-radius: 999px; transition: width 0.4s;
+  }
+  .profile-xp-label {
+    font-size: 11px; font-weight: 700;
+    color: rgba(241,245,249,0.75); margin-top: 4px;
+  }
 
-  .suggest-row { padding: 4px 10px 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .suggest-label { font-size: 12px; color: var(--text3); }
-  .suggest-btn {
-    padding: 5px 10px; font-size: 13px; font-weight: 500;
-    border: 0.5px solid var(--purple); border-radius: var(--radius-sm);
-    background: var(--purple-bg); color: var(--purple);
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
-  .suggest-btn:active { opacity: 0.7; }
-
-  .dict-row { display: flex; gap: 6px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
-  .dict-input {
-    flex: 1; min-width: 80px; padding: 8px 10px; font-size: 14px;
-    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
-    background: var(--bg2); color: var(--text);
-    -webkit-appearance: none; appearance: none;
-  }
-  .dict-input:focus { outline: none; border-color: var(--green); }
-  .dict-input::placeholder { color: var(--text3); }
-  .dict-arrow { color: var(--text3); font-size: 16px; flex-shrink: 0; }
-
-  .copy-btn {
-    padding: 8px 14px; font-size: 13px; font-weight: 500;
-    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
-    background: var(--bg); color: var(--text2);
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-    transition: all 0.15s; margin-top: 8px;
-  }
-  .copy-btn:active { opacity: 0.7; }
-
-  /* PRACTICE */
-  .practice-card {
-    background: var(--bg2); border-radius: var(--radius);
-    border: 0.5px solid var(--border); padding: 1.5rem 1.25rem;
-    text-align: center; margin-bottom: 1rem;
-  }
-  .practice-level { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
-  .practice-target { font-size: 28px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 8px; }
-  .practice-hear {
-    padding: 6px 14px; font-size: 13px;
-    border: 0.5px solid var(--border2); border-radius: 20px;
-    background: var(--bg); color: var(--text2);
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
-  .practice-hear:active { background: var(--bg3); }
-  .practice-mic-label { font-size: 13px; color: var(--text3); margin-bottom: 0.25rem; text-align: center; }
-  .practice-result {
-    padding: 1rem; border-radius: var(--radius-sm);
-    margin-bottom: 1rem; text-align: center; display: none;
-  }
-  .practice-result.pass { display: block; background: var(--green-bg); border: 0.5px solid var(--green); }
-  .practice-result.fail { display: block; background: var(--red-bg); border: 0.5px solid var(--red); }
-  .practice-result .result-icon { font-size: 32px; margin-bottom: 4px; }
-  .practice-result .result-msg { font-size: 15px; font-weight: 500; color: var(--text); }
-  .practice-result .result-heard { font-size: 13px; color: var(--text2); margin-top: 4px; }
-  .practice-nav { display: flex; gap: 8px; justify-content: center; margin-bottom: 1rem; }
-  .practice-nav-btn {
-    padding: 10px 20px; font-size: 14px; font-weight: 500;
-    border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
-    background: var(--bg); color: var(--text2);
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
-  .practice-nav-btn.primary { border-color: var(--green); background: var(--green-bg); color: var(--green-dark); }
-  .practice-nav-btn:active { opacity: 0.7; }
-  .streak-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1rem; }
-  .streak-num { font-size: 20px; font-weight: 600; color: var(--text); }
-  .streak-label { font-size: 12px; color: var(--text2); }
-  .level-tabs { display: flex; gap: 0; margin-bottom: 1rem; border-radius: var(--radius-sm); overflow: hidden; border: 0.5px solid var(--border2); }
-  .level-tab {
-    flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 600;
-    border: none; background: var(--bg); color: var(--text3);
-    cursor: pointer; text-align: center;
-  }
-  .level-tab.active { background: var(--green); color: #fff; }
-  .mastered-badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; border-radius: 4px; background: var(--green-bg); color: var(--green-dark); }
-  .progress-list { display: flex; flex-direction: column; gap: 6px; }
-  .progress-item {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 8px 12px; background: var(--bg2); border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-  }
-  .progress-word { font-size: 14px; color: var(--text); flex: 1; }
-  .progress-streak { font-size: 12px; color: var(--text2); }
+  /* UTILITIES */
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Clear<span>Voice</span></div>
+  <div class="logo"><div class="logo-mark">D</div>Deaf<span>Voice</span></div>
   <div class="header-right">
-    <div class="lang-pill" id="langPill" onclick="openLangModal()">🌐 EN</div>
+    <div class="lang-pill" id="langPill" onclick="openLangModal()">EN · US</div>
   </div>
 </header>
 
-<div class="tabs">
-  <button class="tab active" id="tabRecord" onclick="switchTab('record')">Record</button>
-  <button class="tab" id="tabTranslate" onclick="switchTab('translate')">Translate</button>
-  <button class="tab" id="tabPractice" onclick="switchTab('practice')">Practice</button>
-</div>
+<main class="app-main">
 
-<div id="recordView">
-<div class="main">
+<!-- ============ RECORD ============ -->
+<section id="recordView" class="view active">
 
   <div id="noSupport" class="no-support" style="display:none">
     <strong>Speech recognition not available.</strong><br><br>
-    Open this file in <strong>Chrome on Android</strong> for best results.<br>
+    Open this page in <strong>Chrome on Android</strong> for best results.<br>
     iOS Safari has limited support for continuous speech.
   </div>
 
   <div id="appMain">
 
+    <div class="caption-card">
+      <div class="caption-top">
+        <span class="caption-label">Live caption</span>
+        <span class="status-pill" id="statusPill"><span class="dot"></span><span id="statusTxt">idle</span></span>
+      </div>
+      <div class="live-text" id="liveText"><span class="placeholder">Your words appear here...</span></div>
+      <div class="conf-row" id="confRow" style="display:none">
+        <span class="conf-label">Confidence</span>
+        <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+        <span class="conf-pct" id="confPct">0%</span>
+      </div>
+    </div>
+
     <div class="mic-section">
       <div class="mic-wrap">
         <div class="mic-btn" id="micBtn" onclick="toggleListen()">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="2" width="6" height="12" rx="3"/>
             <path d="M5 10a7 7 0 0 0 14 0"/>
             <line x1="12" y1="19" x2="12" y2="22"/>
@@ -397,91 +1004,84 @@
         <div class="wb" style="height:7px"></div><div class="wb" style="height:16px"></div>
         <div class="wb" style="height:10px"></div>
       </div>
-      <div class="status" id="statusTxt">tap to start</div>
-    </div>
-
-    <div class="transcript-card">
-      <div class="live-text" id="liveText"><span class="placeholder">Your words appear here...</span></div>
-      <div class="conf-row" id="confRow" style="display:none">
-        <span class="conf-label">confidence</span>
-        <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
-        <span class="conf-pct" id="confPct">0%</span>
-      </div>
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="stat-n" id="sTotal">0</div><div class="stat-l">phrases heard</div></div>
-      <div class="stat"><div class="stat-n" id="sCorrected">0</div><div class="stat-l">corrections saved</div></div>
+      <div class="stat"><div class="stat-n" id="sTotal">0</div><div class="stat-l">phrases</div></div>
+      <div class="stat"><div class="stat-n" id="sCorrected">0</div><div class="stat-l">corrections</div></div>
       <div class="stat"><div class="stat-n" id="sAccuracy">—</div><div class="stat-l">accuracy</div></div>
     </div>
 
-    <div class="actions">
-      <button class="action-btn" onclick="exportJSON()">export JSON</button>
-      <button class="action-btn" onclick="exportCSV()">export CSV</button>
-      <button class="action-btn" onclick="openLearnedModal()" id="learnedBtn">learned</button>
-      <button class="action-btn" onclick="clearAll()">clear all</button>
-    </div>
-
     <div id="entriesWrap" style="display:none">
-      <div class="section-hd">phrases — type what you actually said</div>
+      <div class="section-hd">Phrases — type what you actually said</div>
       <div class="entries" id="entriesList"></div>
     </div>
 
   </div>
-</div>
-</div><!-- /recordView -->
+</section>
 
-<div id="translateView" style="display:none">
-<div class="main">
+<!-- ============ TRANSLATE ============ -->
+<section id="translateView" class="view" hidden>
+  <h1 class="page-title">Translate</h1>
+  <p class="page-sub">Speak or type — we apply your learned corrections.</p>
 
-  <div class="section-hd" style="margin-bottom:10px;">speak or type your message</div>
-  <div class="input-row">
-    <textarea id="translateInput" class="translate-area" placeholder="Type here, or tap the mic to speak..." rows="3" oninput="liveTranslate()"></textarea>
-    <div class="mic-wrap" style="width:50px; height:50px;">
-      <div class="mic-btn" id="tMicBtn" onclick="toggleTranslateMic()" style="width:44px; height:44px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;">
-          <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
-          <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
-        </svg>
+  <div class="input-card">
+    <div class="input-label">Your message</div>
+    <div class="input-row">
+      <textarea id="translateInput" class="translate-area" placeholder="Type here, or tap the mic to speak..." rows="3" oninput="liveTranslate()"></textarea>
+      <div class="mic-wrap" style="width:60px; height:60px;">
+        <div class="mic-btn" id="tMicBtn" onclick="toggleTranslateMic()" style="width:54px; height:54px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px; height:22px;">
+            <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
+            <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+          </svg>
+        </div>
+        <div class="pulse-ring" id="tPulseRing" style="width:54px; height:54px;"></div>
       </div>
-      <div class="pulse-ring" id="tPulseRing" style="width:44px; height:44px;"></div>
     </div>
   </div>
 
   <div id="tResult" style="display:none;">
-    <div class="section-hd">corrected version</div>
+    <div class="arrow-row">↓</div>
     <div class="result-card">
+      <div class="result-top">
+        <span class="result-pill">✨ Translated</span>
+      </div>
       <div class="result-text" id="tOutput"></div>
       <div class="result-original" id="tOriginal"></div>
-      <button class="copy-btn" id="copyBtn" onclick="copyTranslation()">📋 Copy</button>
+      <button class="copy-btn" id="copyBtn" onclick="copyTranslation()">Copy</button>
     </div>
 
     <div id="tChanges"></div>
 
-    <div class="coverage-bar">
-      <div class="coverage-label">vocabulary coverage: <strong id="tCovPct">0%</strong></div>
+    <div class="coverage-card">
+      <div class="coverage-label">
+        <span>Vocabulary coverage</span>
+        <strong id="tCovPct">0%</strong>
+      </div>
       <div class="coverage-track"><div class="coverage-fill" id="tCovFill" style="width:0%"></div></div>
     </div>
   </div>
 
-  <div style="margin-top:1.5rem;">
-    <div class="section-hd">add to dictionary</div>
+  <div class="section-hd">Add to dictionary</div>
+  <div class="card tight">
     <div class="dict-row">
       <input class="dict-input" id="dictFrom" placeholder="engine hears..." onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
       <span class="dict-arrow">→</span>
       <input class="dict-input" id="dictTo" placeholder="you mean..." onkeydown="if(event.key==='Enter')addDictEntry()"/>
-      <button class="save-btn" onclick="addDictEntry()">add</button>
+      <button class="save-btn" onclick="addDictEntry()">Add</button>
     </div>
-
-    <div class="section-hd" id="tVocabHd">learned vocabulary — 0 patterns</div>
-    <div class="entries" id="tVocabList"></div>
   </div>
 
-</div>
-</div><!-- /translateView -->
+  <div class="section-hd" id="tVocabHd">Learned vocabulary — 0 patterns</div>
+  <div class="entries" id="tVocabList"></div>
 
-<div id="practiceView" style="display:none">
-<div class="main">
+</section>
+
+<!-- ============ PRACTICE ============ -->
+<section id="practiceView" class="view" hidden>
+  <h1 class="page-title">Practice</h1>
+  <p class="page-sub">Daily drills tuned to your learned corrections.</p>
 
   <div class="level-tabs">
     <button class="level-tab active" id="lvlWord" onclick="setPracticeLevel('word')">Words</button>
@@ -490,23 +1090,24 @@
   </div>
 
   <div class="streak-bar">
-    <div><span class="streak-num" id="pStreak">0</span> <span class="streak-label">streak</span></div>
-    <div><span class="streak-num" id="pMastered">0</span> <span class="streak-label">mastered</span></div>
-    <div><span class="streak-num" id="pTotal">0</span> <span class="streak-label">total</span></div>
+    <div class="streak-cell"><div class="streak-num" id="pStreak">0</div><div class="streak-label">Streak</div></div>
+    <div class="streak-cell"><div class="streak-num" id="pMastered">0</div><div class="streak-label">Mastered</div></div>
+    <div class="streak-cell"><div class="streak-num" id="pTotal">0</div><div class="streak-label">Total</div></div>
   </div>
 
   <div class="practice-card">
+    <div class="shiba practice" id="shibaPractice"></div>
     <div class="practice-level" id="pLevel">word</div>
     <div class="practice-target" id="pTarget">—</div>
     <button class="practice-hear" onclick="hearTarget()">🔊 Hear it</button>
-    <div id="pTip" style="font-size:13px; color:var(--text2); margin-top:10px; line-height:1.5; min-height:20px;"></div>
+    <div class="practice-tip" id="pTip"></div>
   </div>
 
   <div class="practice-mic-label" id="pMicLabel">tap to try saying it</div>
-  <div class="mic-section" style="margin-bottom:0.5rem;">
+  <div class="mic-section" style="margin-top:4px; margin-bottom:14px;">
     <div class="mic-wrap">
       <div class="mic-btn" id="pMicBtn" onclick="togglePracticeMic()">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
           <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
         </svg>
@@ -529,21 +1130,165 @@
   </div>
 
   <div class="practice-nav">
-    <button class="practice-nav-btn" onclick="skipPractice()">skip</button>
-    <button class="practice-nav-btn primary" onclick="nextPractice()">next →</button>
+    <button class="practice-nav-btn" onclick="skipPractice()">Skip</button>
+    <button class="practice-nav-btn primary" onclick="nextPractice()">Next →</button>
   </div>
 
-  <div style="margin-top:0.5rem;">
-    <div class="section-hd" id="pProgressHd">progress</div>
-    <div class="progress-list" id="pProgressList"></div>
+  <div class="section-hd" id="pProgressHd">Progress</div>
+  <div class="progress-list" id="pProgressList"></div>
+
+</section>
+
+<!-- ============ PROGRESS (NEW) ============ -->
+<section id="progressView" class="view" hidden>
+  <h1 class="page-title">Progress</h1>
+  <p class="page-sub">How your voice is becoming clearer over time.</p>
+
+  <div class="hero-card">
+    <div class="shiba hero" id="shibaHero"></div>
+    <div class="hero-label">Accuracy · overall</div>
+    <div class="hero-num" id="progAccuracy">—</div>
+    <div class="hero-trend" id="progTrend">Keep speaking to build your profile</div>
   </div>
 
-</div>
-</div><!-- /practiceView -->
+  <div class="bars-card">
+    <div class="bars-title">Phrases captured · this week</div>
+    <div class="bars-grid" id="progBarsGrid"></div>
+    <div class="bars-labels">
+      <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+    </div>
+  </div>
+
+  <div class="stat-grid-2">
+    <div class="stat-lg">
+      <div class="n" id="progPhrases">0</div>
+      <div class="l">Phrases captured</div>
+    </div>
+    <div class="stat-lg">
+      <div class="n" id="progLearned">0</div>
+      <div class="l">Patterns learned</div>
+    </div>
+    <div class="stat-lg">
+      <div class="n" id="progMastered">0</div>
+      <div class="l">Words mastered</div>
+    </div>
+    <div class="stat-lg">
+      <div class="n" id="progStreak">0</div>
+      <div class="l">Best streak</div>
+    </div>
+  </div>
+
+  <div class="section-hd">Recent corrections</div>
+  <div class="entries" id="progRecent"></div>
+</section>
+
+<!-- ============ SETTINGS (NEW) ============ -->
+<section id="settingsView" class="view" hidden>
+  <h1 class="page-title">You</h1>
+  <p class="page-sub">Preferences, data, and training.</p>
+
+  <div class="profile-card">
+    <div class="profile-avatar" id="shibaProfile"></div>
+    <div class="profile-info">
+      <div class="profile-name">Mochi</div>
+      <div class="profile-level" id="profileLevel">Level 1</div>
+      <div class="profile-xp-track"><div class="profile-xp-fill" id="profileXpFill" style="width:0%"></div></div>
+      <div class="profile-xp-label" id="profileXpLabel">0 patterns learned</div>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-hd">Recognition</div>
+    <div class="settings-card">
+      <div class="setting-row" onclick="openLangModal()">
+        <div class="setting-label">Language</div>
+        <div class="setting-value" id="setLangValue">English (US)</div>
+        <div class="setting-chev">›</div>
+      </div>
+      <div class="setting-row" onclick="toggleAutoApply()">
+        <div class="setting-label">Auto-apply learned corrections</div>
+        <div class="toggle on" id="autoApplyToggle"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-hd">Training data</div>
+    <div class="settings-card">
+      <div class="setting-row" onclick="openLearnedModal()">
+        <div class="setting-label">Learned corrections</div>
+        <div class="setting-value" id="setLearnedValue">0</div>
+        <div class="setting-chev">›</div>
+      </div>
+      <div class="setting-row" onclick="exportJSON()">
+        <div class="setting-label">Export as JSON</div>
+        <div class="setting-chev">›</div>
+      </div>
+      <div class="setting-row" onclick="exportCSV()">
+        <div class="setting-label">Export as CSV</div>
+        <div class="setting-chev">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-hd">Danger zone</div>
+    <div class="settings-card">
+      <div class="setting-row danger" onclick="clearAll()">
+        <div class="setting-label">Clear all entries</div>
+        <div class="setting-chev">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-hd">About</div>
+    <div class="settings-card">
+      <div class="setting-row" style="cursor:default;">
+        <div class="setting-label">Deaf Voice</div>
+        <div class="setting-value">v2.0 · Studio</div>
+      </div>
+      <div class="setting-row" style="cursor:default;">
+        <div class="setting-label">Sync</div>
+        <div class="setting-value" style="color:var(--green);">● Firebase connected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- hidden legacy button preserved for existing updateStats() which writes learned count into it -->
+  <button id="learnedBtn" hidden></button>
+</section>
+
+</main>
+
+<!-- ============ BOTTOM NAV ============ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="tabRecord" onclick="switchTab('record')">
+    <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    Record
+  </button>
+  <button class="nav-btn" id="tabTranslate" onclick="switchTab('translate')">
+    <svg viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M12 4v16"/><path d="m8 8 4-4 4 4"/><path d="m8 16 4 4 4-4"/></svg>
+    Translate
+  </button>
+  <button class="nav-btn" id="tabPractice" onclick="switchTab('practice')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    Practice
+  </button>
+  <button class="nav-btn" id="tabProgress" onclick="switchTab('progress')">
+    <svg viewBox="0 0 24 24"><path d="M3 20h18"/><rect x="5" y="10" width="3" height="10"/><rect x="10.5" y="5" width="3" height="15"/><rect x="16" y="13" width="3" height="7"/></svg>
+    Progress
+  </button>
+  <button class="nav-btn" id="tabSettings" onclick="switchTab('settings')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    You
+  </button>
+</nav>
 
 <!-- Language Modal -->
 <div class="modal-bg" id="langModal">
   <div class="modal">
+    <div class="modal-handle"></div>
     <h3>Select language</h3>
     <select id="langSelect" onchange="setLang(this.value)">
       <option value="en-US">English (US)</option>
@@ -565,17 +1310,18 @@
 <!-- Learned Corrections Modal -->
 <div class="modal-bg" id="learnedModal">
   <div class="modal">
+    <div class="modal-handle"></div>
     <h3>Learned corrections</h3>
-    <p style="font-size:13px; color:var(--text3); margin-bottom:12px; line-height:1.5;">
-      When you type a correction, the app remembers it. Next time the engine hears the same thing, it auto-applies your correction.
+    <p style="font-size:13px; color:var(--text3); margin-bottom:14px; line-height:1.5;">
+      When you correct a phrase, we remember it. Next time the engine hears the same thing, the correction auto-applies.
     </p>
-    <div id="learnedList" style="max-height:55vh; overflow-y:auto; margin-bottom:1rem; border-top:0.5px solid var(--border);"></div>
+    <div id="learnedList" style="max-height:55vh; overflow-y:auto; margin-bottom:14px; border-top:1px solid var(--border);"></div>
     <button class="modal-close" onclick="closeLearnedModal()">Done</button>
   </div>
 </div>
 
 <script type="module">
-// ---- Firebase setup ----
+// ---- Firebase setup (UNCHANGED) ----
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
@@ -606,12 +1352,123 @@ let rec, listening = false, waveTimer;
 let entries = loadLocal();
 let learnedMap = loadLearnedLocal();
 let currentLang = 'en-US';
-const wbEls = document.querySelectorAll('.wb');
+let autoApply = (localStorage.getItem('cv_autoapply') !== 'false');
+const wbEls = document.querySelectorAll('#wave .wb');
 const baseH = [6,11,18,8,22,13,7,16,10];
+
+// ---- Mochi (Shiba mascot) ----
+// Level math: 1 + floor(learned / 3), clamped at 12.
+// Bandana unlocks at level 5 (12+ learned), crown at level 10 (27+ learned).
+function mochiLevel() {
+  const n = Object.keys(learnedMap).length;
+  return Math.min(12, 1 + Math.floor(n / 3));
+}
+function mochiXpInLevel() {
+  const n = Object.keys(learnedMap).length;
+  const lvl = mochiLevel();
+  if (lvl >= 12) return { cur: 3, of: 3, pct: 100 };
+  const base = (lvl - 1) * 3;
+  return { cur: n - base, of: 3, pct: Math.round(((n - base) / 3) * 100) };
+}
+
+function makeShiba({ action = 'idle', size = 88, level = 1, furColor = '#E8A358' } = {}) {
+  const isBark = action === 'bark';
+  const isSad = action === 'sad';
+  const isFocus = action === 'focus';
+  const isDig = action === 'dig';
+  const isPerk = action === 'perk';
+  const hasBandana = level >= 5;
+  const hasCrown = level >= 10;
+  const outline = '#D18A3F';
+  const tr = '.3s cubic-bezier(.34,1.56,.64,1)';
+
+  const leftPawT =
+    isDig    ? 'translate(0,15px)' :
+    isSad    ? 'translate(0,40px)' :
+    isFocus  ? 'translate(5px,25px)' :
+    (isBark || isPerk) ? 'translate(0,-15px)' :
+                         'translate(0,10px)';
+  const rightPawT =
+    isDig    ? 'translate(0,5px)' :
+    isSad    ? 'translate(0,40px)' :
+    isFocus  ? 'translate(-5px,20px)' :
+    (isBark || isPerk) ? 'translate(0,-15px)' :
+                         'translate(0,10px)';
+  const earLeftT = isPerk ? 'translateY(-5px) rotate(-10deg)' : isSad ? 'translateY(5px) rotate(10deg)' : '';
+  const earRightT = isPerk ? 'translateY(-5px) rotate(10deg)' : isSad ? 'translateY(5px) rotate(-10deg)' : '';
+  const eyeR = isPerk ? 6 : 5;
+
+  const digDirt = isDig ? `
+    <circle cx="20" cy="110" r="2" fill="#8D6E63"><animate attributeName="opacity" values="1;.2;1" dur=".5s" repeatCount="indefinite"/></circle>
+    <circle cx="100" cy="115" r="3" fill="#8D6E63"><animate attributeName="opacity" values="1;.2;1" dur=".6s" repeatCount="indefinite"/></circle>
+    <circle cx="10" cy="100" r="2" fill="#8D6E63"><animate attributeName="opacity" values="1;.2;1" dur=".4s" repeatCount="indefinite"/></circle>` : '';
+  const focusBook = isFocus ? `
+    <g transform="rotate(-5 60 120)">
+      <rect x="25" y="110" width="70" height="20" fill="#FFF" stroke="#CCC" stroke-width="1" rx="1"/>
+      <line x1="30" y1="118" x2="80" y2="118" stroke="#EEE" stroke-width="1"/>
+    </g>` : '';
+  const mouth = isSad
+    ? `<path d="M50 92 Q60 88 70 92" fill="none" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>`
+    : isFocus
+    ? `<path d="M55 90 H65" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>`
+    : `<path d="M60 82 L60 92 M60 92 Q52 98 48 88 M60 92 Q68 98 72 88" fill="none" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>`;
+  const tear = isSad ? `<path d="M40 70 Q40 80 35 80 Q30 80 30 70 L35 60 Z" fill="#4FC3F7" stroke="#039BE5" stroke-width=".5"/>` : '';
+  const bandana = hasBandana ? `<path d="M30 95 Q60 120 90 95 L80 90 Q60 105 40 90 Z" fill="#EF4444" stroke="#B91C1C" stroke-width="2" stroke-linejoin="round"/>` : '';
+  const crown = hasCrown ? `<path d="M40 30 L40 10 L50 20 L60 5 L70 20 L80 10 L80 30 Z" fill="#FBBF24" stroke="#D97706" stroke-width="2" stroke-linejoin="round"/>` : '';
+
+  return `<svg viewBox="0 0 120 130" width="${size}" height="${size}" style="overflow:visible; filter:drop-shadow(0 4px 6px rgba(0,0,0,.18));">
+    ${digDirt}
+    ${focusBook}
+    <path d="M28 52 L18 22 Q38 28 50 42 Z" fill="${furColor}" stroke="${outline}" stroke-width="2" stroke-linejoin="round" style="transform:${earLeftT};transform-origin:28px 52px;transition:transform ${tr}"/>
+    <path d="M92 52 L102 22 Q82 28 70 42 Z" fill="${furColor}" stroke="${outline}" stroke-width="2" stroke-linejoin="round" style="transform:${earRightT};transform-origin:92px 52px;transition:transform ${tr}"/>
+    <circle cx="60" cy="70" r="45" fill="${furColor}" stroke="${outline}" stroke-width="2"/>
+    <path d="M60 70 Q25 70 20 85 Q15 100 60 112 Q105 100 100 85 Q95 70 60 70" fill="#FFFDF5"/>
+    ${bandana}
+    <ellipse cx="40" cy="55" rx="4" ry="2" fill="#FFFDF5" opacity=".8"/>
+    <ellipse cx="80" cy="55" rx="4" ry="2" fill="#FFFDF5" opacity=".8"/>
+    <circle cx="42" cy="65" r="${eyeR}" fill="#3E2723"/>
+    <circle cx="44" cy="63" r="2" fill="white"/>
+    <circle cx="78" cy="65" r="${eyeR}" fill="#3E2723"/>
+    <circle cx="80" cy="63" r="2" fill="white"/>
+    <ellipse cx="60" cy="82" rx="7" ry="5" fill="#3E2723"/>
+    ${mouth}
+    <circle cx="28" cy="85" r="5" fill="#FFAB91" opacity=".5"/>
+    <circle cx="92" cy="85" r="5" fill="#FFAB91" opacity=".5"/>
+    ${tear}
+    ${crown}
+    <g style="transform:${leftPawT};transition:transform ${tr}">
+      <circle cx="30" cy="110" r="14" fill="#FFFDF5" stroke="${outline}" stroke-width="2"/>
+      <path d="M24 108 L24 116 M30 106 L30 116 M36 108 L36 116" stroke="${outline}" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <g style="transform:${rightPawT};transition:transform ${tr}">
+      <circle cx="90" cy="110" r="14" fill="#FFFDF5" stroke="${outline}" stroke-width="2"/>
+      <path d="M84 108 L84 116 M90 106 L90 116 M96 108 L96 116" stroke="${outline}" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+}
+
+function renderMochi() {
+  const lvl = mochiLevel();
+  const heroEl = document.getElementById('shibaHero');
+  if (heroEl) heroEl.innerHTML = makeShiba({ action: 'bark', size: 88, level: lvl });
+  const practiceEl = document.getElementById('shibaPractice');
+  if (practiceEl) practiceEl.innerHTML = makeShiba({ action: 'focus', size: 80, level: lvl });
+  const profileEl = document.getElementById('shibaProfile');
+  if (profileEl) profileEl.innerHTML = makeShiba({ action: 'idle', size: 72, level: lvl });
+  const lvlEl = document.getElementById('profileLevel');
+  if (lvlEl) lvlEl.textContent = 'Level ' + lvl + (lvl >= 10 ? ' · crowned' : lvl >= 5 ? ' · bandana' : '');
+  const xp = mochiXpInLevel();
+  const fill = document.getElementById('profileXpFill');
+  if (fill) fill.style.width = xp.pct + '%';
+  const xpLabel = document.getElementById('profileXpLabel');
+  if (xpLabel) xpLabel.textContent = Object.keys(learnedMap).length + ' patterns learned';
+}
 
 renderAll();
 loadFromCloud();
 loadLearnedFromCloud();
+updateAutoApplyUI();
+renderMochi();
 
 function animWave() {
   waveTimer = setInterval(() => {
@@ -633,21 +1490,17 @@ function startListen() {
   rec.continuous = true;
   rec.interimResults = true;
   rec.lang = currentLang;
-  // Tracks how many results we've already added as finals, so we don't
-  // add the same utterance twice when Chrome re-emits results.
   let finalIndex = 0;
   rec.onstart = () => {
     listening = true;
     document.getElementById('micBtn').classList.add('on');
     document.getElementById('wave').classList.add('live');
-    document.getElementById('statusTxt').textContent = 'listening...';
-    document.getElementById('statusTxt').className = 'status on';
+    document.getElementById('statusTxt').textContent = 'live';
+    document.getElementById('statusPill').classList.add('on');
     animWave();
   };
   rec.onresult = (e) => {
     let interim = '';
-    // Start from whichever is later: what Chrome says changed, or what we
-    // haven't processed yet. Prevents re-adding already-finalized results.
     const startAt = Math.max(e.resultIndex, finalIndex);
     for (let i = startAt; i < e.results.length; i++) {
       const r = e.results[i];
@@ -670,13 +1523,12 @@ function startListen() {
   };
   rec.onerror = (e) => {
     const msgs = { 'not-allowed': 'Mic denied — check browser settings', 'no-speech': 'No speech heard', 'network': 'Network error' };
-    document.getElementById('statusTxt').textContent = msgs[e.error] || 'Error: ' + e.error;
-    document.getElementById('statusTxt').className = 'status';
+    document.getElementById('statusTxt').textContent = msgs[e.error] || 'error';
+    document.getElementById('statusPill').classList.remove('on');
     stopListen();
   };
   rec.onend = () => {
     if (!listening) return;
-    // Results array resets on restart, so reset our tracker too.
     finalIndex = 0;
     try { rec.start(); } catch (err) { setTimeout(() => { try { rec.start(); } catch(_) {} }, 250); }
   };
@@ -688,17 +1540,13 @@ function stopListen() {
   listening = false;
   document.getElementById('micBtn').classList.remove('on');
   document.getElementById('wave').classList.remove('live');
-  document.getElementById('statusTxt').textContent = 'tap to start';
-  document.getElementById('statusTxt').className = 'status';
+  document.getElementById('statusTxt').textContent = 'idle';
+  document.getElementById('statusPill').classList.remove('on');
   stopWave();
-  flushPending();   // commit any buffered phrase before we stop
+  flushPending();
 }
 
 // ---- Phrase buffering ----
-// Some engines (Samsung/Android etc.) emit progressive finals like
-// "my" -> "my name" -> "my name is" -> "my name is Carlos" as separate
-// result indices. We buffer for a short window and only commit the
-// longest/most-confident version.
 let pendingFinal = null;
 let pendingTimer = null;
 const COMMIT_DELAY_MS = 900;
@@ -709,15 +1557,12 @@ function queueFinal(text, conf) {
     const p = pendingFinal.text.toLowerCase();
     const t = text.toLowerCase();
     if (t === p) {
-      // same text, keep the higher confidence
       if (conf > pendingFinal.conf) pendingFinal.conf = conf;
     } else if (t.startsWith(p)) {
-      // new extends pending -> replace
       pendingFinal = { text, conf };
     } else if (p.startsWith(t)) {
-      // pending already extends new -> ignore new
+      // pending already extends new -> ignore
     } else {
-      // unrelated utterance: commit the old one now, start a new buffer
       flushPending();
       pendingFinal = { text, conf };
     }
@@ -748,22 +1593,20 @@ function setConf(c) {
   const fill = document.getElementById('confFill');
   document.getElementById('confRow').style.display = 'flex';
   fill.style.width = pct + '%';
-  fill.style.background = pct >= 70 ? '#1D9E75' : pct >= 45 ? '#BA7517' : '#A32D2D';
+  fill.style.background = pct >= 70 ? 'var(--green)' : pct >= 45 ? 'var(--amber)' : 'var(--red)';
   document.getElementById('confPct').textContent = pct + '%';
 }
 
 async function addEntry(text, conf) {
   if (!text) return;
-  // Safety net: drop same-text duplicates from the recognizer within 1.5s.
   if (entries.length > 0) {
     const last = entries[0];
     if (last.heard === text && Date.now() - Date.parse(last.ts) < 1500) return;
   }
-  // Apply any learned correction for this phrase
   const norm = normalize(text);
-  const learned = learnedMap[norm];
+  const learned = autoApply ? learnedMap[norm] : null;
   const entry = {
-    id: 't_' + Date.now(),          // temporary local id until Firestore assigns one
+    id: 't_' + Date.now(),
     heard: text,
     corrected: learned ? learned.to : null,
     wasLearned: !!learned,
@@ -813,7 +1656,6 @@ async function saveCorrection(id) {
       console.warn('[firebase] saveCorrection failed', err);
     }
   }
-  // Remember this mapping so future identical phrases auto-correct
   if (e && val !== e.heard) learnPattern(e.heard, val);
 }
 
@@ -833,7 +1675,7 @@ async function deleteEntry(id) {
 async function confirmCorrect(id) {
   const e = entries.find(e => e.id === id);
   if (!e) return;
-  e.corrected = e.heard;   // mark as correct-as-heard
+  e.corrected = e.heard;
   saveLocal();
   renderAll();
   if (typeof id === 'string' && !id.startsWith('t_')) {
@@ -848,6 +1690,9 @@ async function confirmCorrect(id) {
 function renderAll() {
   updateStats();
   renderEntries();
+  renderProgress();
+  updateSettingsValues();
+  renderMochi();
 }
 
 function renderEntries() {
@@ -861,7 +1706,7 @@ function renderEntries() {
     if (e.wasLearned && e.corrected) {
       return `<div class="entry">
         <div class="entry-top"><span class="entry-heard">${esc(e.corrected)}</span><span class="badge learned">✨ learned</span>${delBtn}</div>
-        <div class="corrected-row"><span class="badge saved">auto</span> engine heard: "${esc(e.heard)}"</div>
+        <div class="corrected-row"><span class="badge saved">auto</span><span class="mono">engine heard: "${esc(e.heard)}"</span></div>
       </div>`;
     }
     if (e.corrected && e.corrected === e.heard) {
@@ -872,21 +1717,21 @@ function renderEntries() {
     if (e.corrected) {
       return `<div class="entry">
         <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge lo">engine</span>${delBtn}</div>
-        <div class="corrected-row"><span class="badge saved">saved</span> you said: "${esc(e.corrected)}"</div>
+        <div class="corrected-row"><span class="badge saved">saved</span><span class="mono">you said: "${esc(e.corrected)}"</span></div>
       </div>`;
     }
     const suggestion = getSuggestion(e.heard);
     let suggestHtml = '';
     if (suggestion && suggestion !== e.heard) {
       suggestionCache[e.id] = suggestion;
-      suggestHtml = `<div class="suggest-row"><span class="suggest-label">did you mean:</span><button class="suggest-btn" onclick="applySuggestion('${e.id}')">"${esc(suggestion)}"</button></div>`;
+      suggestHtml = `<div class="suggest-row"><span class="suggest-label">Did you mean</span><button class="suggest-btn" onclick="applySuggestion('${e.id}')">"${esc(suggestion)}"</button></div>`;
     }
     return `<div class="entry">
       <div class="entry-top"><span class="entry-heard">${esc(e.heard)}</span><span class="badge ${bc}">${e.conf}%</span>${delBtn}</div>
       ${suggestHtml}
       <div class="entry-correct">
         <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection('${e.id}');this.blur();}"/>
-        <button class="save-btn" onclick="saveCorrection('${e.id}')">save</button>
+        <button class="save-btn" onclick="saveCorrection('${e.id}')">Save</button>
         <button class="confirm-btn" title="Mark as correct — no typing needed" onclick="confirmCorrect('${e.id}')">✓</button>
       </div>
     </div>`;
@@ -905,15 +1750,102 @@ function updateStats() {
   if (lb) lb.textContent = learnedN ? `learned (${learnedN})` : 'learned';
 }
 
+function updateSettingsValues() {
+  const slv = document.getElementById('setLearnedValue');
+  if (slv) slv.textContent = Object.keys(learnedMap).length;
+  const lv = document.getElementById('setLangValue');
+  if (lv) {
+    const names = { 'en-US':'English (US)', 'en-GB':'English (UK)', 'es-US':'Spanish (US)', 'es-ES':'Spanish (Spain)', 'pt-BR':'Portuguese (BR)', 'fr-FR':'French', 'de-DE':'German', 'zh-CN':'Chinese', 'ar-SA':'Arabic', 'hi-IN':'Hindi', 'ja-JP':'Japanese' };
+    lv.textContent = names[currentLang] || currentLang;
+  }
+}
+
+function updateAutoApplyUI() {
+  const t = document.getElementById('autoApplyToggle');
+  if (t) t.classList.toggle('on', autoApply);
+}
+function toggleAutoApply() {
+  autoApply = !autoApply;
+  localStorage.setItem('cv_autoapply', String(autoApply));
+  updateAutoApplyUI();
+}
+
+// ---- Progress view ----
+function renderProgress() {
+  // Accuracy
+  const total = entries.length;
+  const corrected = entries.filter(e => e.corrected && e.corrected !== e.heard).length;
+  const accuracy = total > 0 ? Math.round(((total - corrected) / total) * 100) : null;
+  document.getElementById('progAccuracy').textContent = accuracy !== null ? accuracy + '%' : '—';
+  document.getElementById('progPhrases').textContent = total;
+  document.getElementById('progLearned').textContent = Object.keys(learnedMap).length;
+  try {
+    const pp = JSON.parse(localStorage.getItem('cv_practice') || '{}');
+    document.getElementById('progMastered').textContent = Object.values(pp).filter(v => v >= 3).length;
+  } catch(_) { document.getElementById('progMastered').textContent = '0'; }
+  const best = parseInt(localStorage.getItem('cv_best_streak') || '0', 10);
+  document.getElementById('progStreak').textContent = best || '0';
+
+  // Weekly bars — count entries per day of the current week (Mon–Sun)
+  const now = new Date();
+  const day = (now.getDay() + 6) % 7; // 0=Mon
+  const monday = new Date(now); monday.setDate(now.getDate() - day); monday.setHours(0,0,0,0);
+  const counts = [0,0,0,0,0,0,0];
+  entries.forEach(e => {
+    const d = new Date(e.ts);
+    if (isNaN(d)) return;
+    const diff = Math.floor((d - monday) / 86400000);
+    if (diff >= 0 && diff < 7) counts[diff]++;
+  });
+  const max = Math.max(1, ...counts);
+  const grid = document.getElementById('progBarsGrid');
+  const todayIdx = day;
+  grid.innerHTML = counts.map((c, i) => {
+    const pct = Math.round((c / max) * 100);
+    const h = Math.max(4, Math.round((c / max) * 100));
+    return `<div class="bar ${i === todayIdx ? 'today' : ''}">
+      <div class="bar-pct">${c}</div>
+      <div class="bar-fill" style="height:${h}%"></div>
+    </div>`;
+  }).join('');
+
+  // Trend: compare first half to second half
+  const half = Math.floor(entries.length / 2);
+  if (entries.length >= 6) {
+    const recentAcc = accForSlice(entries.slice(0, half));
+    const olderAcc = accForSlice(entries.slice(half));
+    if (recentAcc !== null && olderAcc !== null) {
+      const delta = recentAcc - olderAcc;
+      const txt = delta > 0 ? `▲ ${delta} points vs earlier` : delta < 0 ? `▼ ${Math.abs(delta)} points vs earlier` : 'Steady accuracy';
+      document.getElementById('progTrend').textContent = txt;
+    }
+  }
+
+  // Recent corrections list
+  const recent = entries.filter(e => e.corrected && e.corrected !== e.heard).slice(0, 6);
+  document.getElementById('progRecent').innerHTML = recent.length
+    ? recent.map(e => `<div class="entry">
+        <div class="entry-top"><span class="entry-heard">${esc(e.corrected)}</span><span class="badge saved">saved</span></div>
+        <div class="corrected-row"><span class="mono">engine heard: "${esc(e.heard)}"</span></div>
+      </div>`).join('')
+    : `<div class="card tight" style="text-align:center; color:var(--text3); font-size:13px;">No corrections yet. Record something and teach the app.</div>`;
+}
+
+function accForSlice(arr) {
+  if (!arr.length) return null;
+  const c = arr.filter(e => e.corrected && e.corrected !== e.heard).length;
+  return Math.round(((arr.length - c) / arr.length) * 100);
+}
+
 function exportJSON() {
   const data = entries.map(e => ({ heard: e.heard, corrected: e.corrected || e.heard, was_corrected: !!e.corrected, confidence: e.conf, lang: e.lang, timestamp: e.ts }));
-  download('clearvoice_training_data.json', JSON.stringify(data, null, 2), 'application/json');
+  download('deafvoice_training_data.json', JSON.stringify(data, null, 2), 'application/json');
 }
 
 function exportCSV() {
   const rows = [['heard_by_engine','actual_text','was_corrected','confidence','lang','timestamp']];
   entries.forEach(e => rows.push(['"'+e.heard.replace(/"/g,'""')+'"', '"'+(e.corrected||e.heard).replace(/"/g,'""')+'"', e.corrected?'true':'false', e.conf, e.lang, e.ts]));
-  download('clearvoice_training_data.csv', rows.map(r=>r.join(',')).join('\n'), 'text/csv');
+  download('deafvoice_training_data.csv', rows.map(r=>r.join(',')).join('\n'), 'text/csv');
 }
 
 function download(filename, content, type) {
@@ -974,7 +1906,6 @@ function learnPattern(fromText, toText) {
     count: (existing && existing.count) ? existing.count + 1 : 1,
     ts: new Date().toISOString()
   };
-  // Also extract word-level diff and store that as a separate mapping
   const wordDiff = extractWordDiff(fromText, toText);
   if (wordDiff) {
     const wKey = normalize(wordDiff.from);
@@ -996,17 +1927,14 @@ function learnPattern(fromText, toText) {
 function extractWordDiff(fromText, toText) {
   const fw = fromText.toLowerCase().split(/\s+/);
   const tw = toText.toLowerCase().split(/\s+/);
-  // Find common prefix
   let pre = 0;
   while (pre < fw.length && pre < tw.length && fw[pre] === tw[pre]) pre++;
-  // Find common suffix
   let suf = 0;
   while (suf < fw.length - pre && suf < tw.length - pre &&
          fw[fw.length - 1 - suf] === tw[tw.length - 1 - suf]) suf++;
   const fromDiff = fw.slice(pre, fw.length - suf).join(' ');
   const toDiff = tw.slice(pre, tw.length - suf).join(' ');
   if (fromDiff && toDiff && fromDiff !== toDiff && fromDiff.length < fromText.length * 0.8) {
-    // Preserve original casing from the input text for the extracted parts
     const fromOriginal = fromText.split(/\s+/).slice(pre, fw.length - suf).join(' ');
     const toOriginal = toText.split(/\s+/).slice(pre, tw.length - suf).join(' ');
     return { from: fromOriginal, to: toOriginal };
@@ -1065,13 +1993,13 @@ function renderLearnedList() {
   keys.forEach(k => {
     const m = learnedMap[k];
     const row = document.createElement('div');
-    row.style.cssText = 'padding:12px 4px; border-bottom:0.5px solid var(--border); display:flex; align-items:center; gap:8px;';
+    row.style.cssText = 'padding:12px 4px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;';
     const info = document.createElement('div');
     info.style.cssText = 'flex:1; min-width:0;';
     info.innerHTML = `
-      <div style="font-size:13px; color:var(--text3); text-decoration:line-through; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.from || k)}</div>
-      <div style="font-size:14px; color:var(--text); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">→ ${esc(m.to)}</div>
-      <div style="font-size:11px; color:var(--text3); margin-top:2px;">applied ${m.count || 1}×</div>
+      <div style="font-family:var(--font-mono); font-size:12px; color:var(--text3); text-decoration:line-through; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.from || k)}</div>
+      <div style="font-size:14px; color:var(--text); font-weight:600; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">→ ${esc(m.to)}</div>
+      <div style="font-size:11px; color:var(--text3); margin-top:3px;">applied ${m.count || 1}×</div>
     `;
     const del = document.createElement('button');
     del.className = 'del-btn';
@@ -1092,26 +2020,34 @@ async function deleteLearned(key) {
 
 function setLang(val) {
   currentLang = val;
-  const labels = { 'en-US':'EN', 'en-GB':'EN-GB', 'es-US':'ES', 'es-ES':'ES', 'pt-BR':'PT', 'fr-FR':'FR', 'de-DE':'DE', 'zh-CN':'ZH', 'ar-SA':'AR', 'hi-IN':'HI', 'ja-JP':'JA' };
-  document.getElementById('langPill').textContent = '🌐 ' + (labels[val] || val);
+  const labels = { 'en-US':'EN · US', 'en-GB':'EN · UK', 'es-US':'ES · US', 'es-ES':'ES · ES', 'pt-BR':'PT · BR', 'fr-FR':'FR', 'de-DE':'DE', 'zh-CN':'ZH', 'ar-SA':'AR', 'hi-IN':'HI', 'ja-JP':'JA' };
+  document.getElementById('langPill').textContent = labels[val] || val;
+  updateSettingsValues();
   if (listening) { stopListen(); setTimeout(startListen, 300); }
 }
 
 function openLangModal() { document.getElementById('langModal').classList.add('open'); }
 function closeLangModal() { document.getElementById('langModal').classList.remove('open'); }
 
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ---- Tab switching ----
 function switchTab(tab) {
-  document.getElementById('recordView').style.display = tab === 'record' ? '' : 'none';
-  document.getElementById('translateView').style.display = tab === 'translate' ? '' : 'none';
-  document.getElementById('practiceView').style.display = tab === 'practice' ? '' : 'none';
-  document.getElementById('tabRecord').className = tab === 'record' ? 'tab active' : 'tab';
-  document.getElementById('tabTranslate').className = tab === 'translate' ? 'tab active' : 'tab';
-  document.getElementById('tabPractice').className = tab === 'practice' ? 'tab active' : 'tab';
+  const views = ['record','translate','practice','progress','settings'];
+  views.forEach(v => {
+    const el = document.getElementById(v + 'View');
+    const btn = document.getElementById('tab' + v.charAt(0).toUpperCase() + v.slice(1));
+    if (!el || !btn) return;
+    const isActive = v === tab;
+    el.hidden = !isActive;
+    el.classList.toggle('active', isActive);
+    btn.classList.toggle('active', isActive);
+  });
   if (tab === 'translate') renderVocabList();
   if (tab === 'practice') initPractice();
+  if (tab === 'progress') renderProgress();
+  if (tab === 'settings') updateSettingsValues();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ---- Translate engine ----
@@ -1119,15 +2055,12 @@ function escapeRx(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 function translateText(input) {
   if (!input.trim()) return { output: '', applied: [], coverage: 0 };
-
   let output = input;
   const applied = [];
-  // Build list of patterns sorted by longest "from" first (avoids partial hits)
   const patterns = Object.keys(learnedMap)
     .map(k => learnedMap[k])
     .filter(m => m.from && m.to && m.from !== m.to)
     .sort((a, b) => b.from.length - a.from.length);
-
   for (const p of patterns) {
     const rx = new RegExp(escapeRx(p.from), 'gi');
     if (rx.test(output)) {
@@ -1135,8 +2068,6 @@ function translateText(input) {
       applied.push(p);
     }
   }
-
-  // Coverage: what fraction of input words were touched by corrections
   const inputWords = input.toLowerCase().split(/\s+/).filter(Boolean);
   let touchedWords = 0;
   for (const p of applied) {
@@ -1144,7 +2075,6 @@ function translateText(input) {
     touchedWords += fromWords.length;
   }
   const coverage = inputWords.length > 0 ? Math.min(Math.round((touchedWords / inputWords.length) * 100), 100) : 0;
-
   return { output: output.trim(), applied, coverage };
 }
 
@@ -1152,30 +2082,26 @@ function liveTranslate() {
   const input = document.getElementById('translateInput').value;
   const res = document.getElementById('tResult');
   if (!input.trim()) { res.style.display = 'none'; return; }
-
   const { output, applied, coverage } = translateText(input);
   res.style.display = '';
-
   document.getElementById('tOutput').textContent = output || input;
   document.getElementById('tOriginal').textContent = applied.length
     ? 'original: "' + input.trim() + '"'
     : 'no corrections needed — text kept as-is';
-
   const changesEl = document.getElementById('tChanges');
   if (applied.length) {
-    changesEl.innerHTML = '<div class="section-hd" style="margin-top:12px;">corrections applied</div>' +
+    changesEl.innerHTML = '<div class="section-hd" style="margin-top:12px;">Corrections applied</div><div class="card tight">' +
       applied.map(p =>
         `<div class="change-item"><span class="change-from">${esc(p.from)}</span><span class="change-arrow">→</span><span class="change-to">${esc(p.to)}</span></div>`
-      ).join('');
+      ).join('') + '</div>';
   } else {
     changesEl.innerHTML = '';
   }
-
   document.getElementById('tCovPct').textContent = coverage + '%';
   document.getElementById('tCovFill').style.width = coverage + '%';
 }
 
-// ---- Translate mic (same speech engine, feeds into the textarea) ----
+// ---- Translate mic ----
 let tRec, tListening = false;
 
 function toggleTranslateMic() {
@@ -1210,18 +2136,18 @@ function stopTranslateMic() {
 
 function renderVocabList() {
   const keys = Object.keys(learnedMap).sort((a,b) => (learnedMap[b].count||0) - (learnedMap[a].count||0));
-  document.getElementById('tVocabHd').textContent = `learned vocabulary — ${keys.length} pattern${keys.length !== 1 ? 's' : ''}`;
+  document.getElementById('tVocabHd').textContent = `Learned vocabulary — ${keys.length} pattern${keys.length !== 1 ? 's' : ''}`;
   const list = document.getElementById('tVocabList');
   if (!keys.length) {
-    list.innerHTML = '<p style="color:var(--text3); font-size:14px; padding:1rem 0; text-align:center;">No patterns yet. Go to Record, speak, and correct phrases to teach the app.</p>';
+    list.innerHTML = '<div class="card tight" style="color:var(--text3); font-size:13px; text-align:center;">No patterns yet. Go to Record, speak, and correct phrases to teach the app.</div>';
     return;
   }
   list.innerHTML = keys.map(k => {
     const m = learnedMap[k];
-    return `<div class="entry" style="padding:10px 12px;">
-      <div style="font-size:13px; color:var(--text3); text-decoration:line-through;">${esc(m.from || k)}</div>
-      <div style="font-size:15px; color:var(--purple); margin-top:3px;">→ ${esc(m.to)}</div>
-      <div style="font-size:11px; color:var(--text3); margin-top:3px;">used ${m.count || 1}×</div>
+    return `<div class="entry" style="padding:12px 14px;">
+      <div style="font-family:var(--font-mono); font-size:12px; color:var(--text3); text-decoration:line-through;">${esc(m.from || k)}</div>
+      <div style="font-size:15px; color:var(--purple-soft); font-weight:700; margin-top:4px;">→ ${esc(m.to)}</div>
+      <div style="font-size:11px; color:var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:0.3px; font-weight:800;">used ${m.count || 1}×</div>
     </div>`;
   }).join('');
 }
@@ -1232,7 +2158,6 @@ const suggestionCache = {};
 function getSuggestion(text) {
   const norm = normalize(text);
   if (learnedMap[norm]) return learnedMap[norm].to;
-  // Check if any learned "from" shares significant words with this text
   const words = norm.split(/\s+/).filter(Boolean);
   const wordSet = new Set(words);
   let best = null, bestScore = 0;
@@ -1296,7 +2221,7 @@ async function copyTranslation() {
     document.body.removeChild(ta);
     btn.textContent = '✓ Copied';
   }
-  setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
+  setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
 }
 
 // ---- Practice mode ----
@@ -1327,7 +2252,6 @@ const defaultSentences = [
 ];
 
 function buildPracticeList() {
-  // Priority: words from learned corrections (user struggles with these)
   const fromLearned = [];
   for (const k of Object.keys(learnedMap)) {
     const m = learnedMap[k];
@@ -1338,11 +2262,9 @@ function buildPracticeList() {
     if (practiceLevel === 'phrase' && words.length >= 2 && words.length <= 5) fromLearned.push(text);
     if (practiceLevel === 'sentence' && words.length > 4) fromLearned.push(text);
   }
-  // Fill with defaults if not enough learned items
   let defaults = practiceLevel === 'word' ? defaultWords
     : practiceLevel === 'phrase' ? defaultPhrases : defaultSentences;
   const combined = [...new Set([...fromLearned, ...defaults])];
-  // Sort: un-mastered first, then mastered
   combined.sort((a, b) => {
     const aM = (practiceProgress[normalize(a)] || 0) >= 3 ? 1 : 0;
     const bM = (practiceProgress[normalize(b)] || 0) >= 3 ? 1 : 0;
@@ -1371,7 +2293,6 @@ function showPracticeItem() {
   document.getElementById('pResult').className = 'practice-result';
   document.getElementById('pMicLabel').textContent = 'tap to try saying it';
   document.getElementById('pMicBtn').classList.remove('on');
-  // Show pronunciation tip
   showPronunciationTip(item);
   updatePracticeStats();
 }
@@ -1408,7 +2329,6 @@ function showPronunciationTip(word) {
     tipEl.innerHTML = '💡 <strong>Tip:</strong> ' + esc(tips[lower]);
     return;
   }
-  // Generic tips based on common difficult sounds
   const genericTips = [];
   if (/th/i.test(word)) genericTips.push('For "th" — place tongue tip between your teeth');
   if (/\bv/i.test(word)) genericTips.push('For "v" — bite lower lip gently (not "b")');
@@ -1489,7 +2409,6 @@ function checkPracticeResult(heard, target) {
   const hNorm = normalize(heard);
   const tNorm = normalize(target);
   const pass = hNorm === tNorm;
-  // Also accept if they're very close (levenshtein ratio > 0.8)
   const ratio = similarity(hNorm, tNorm);
   const accepted = pass || ratio >= 0.8;
 
@@ -1500,17 +2419,19 @@ function checkPracticeResult(heard, target) {
 
   if (accepted) {
     resEl.className = 'practice-result pass';
-    iconEl.textContent = '✅';
-    msgEl.textContent = pass ? 'Perfect!' : 'Close enough — great job!';
+    iconEl.textContent = '✨';
+    msgEl.textContent = pass ? 'Perfect match!' : 'Close enough — great job!';
     heardEl.textContent = 'Engine heard: "' + heard + '"';
     practiceStreak++;
-    // Track progress
     const pKey = normalize(target);
     practiceProgress[pKey] = (practiceProgress[pKey] || 0) + 1;
     savePracticeProgress();
+    // Best streak tracking (for Progress view)
+    const best = parseInt(localStorage.getItem('cv_best_streak') || '0', 10);
+    if (practiceStreak > best) localStorage.setItem('cv_best_streak', String(practiceStreak));
   } else {
     resEl.className = 'practice-result fail';
-    iconEl.textContent = '❌';
+    iconEl.textContent = '🎯';
     msgEl.textContent = 'Not quite — try again!';
     heardEl.textContent = 'Engine heard: "' + heard + '" instead of "' + target + '"';
     practiceStreak = 0;
@@ -1554,7 +2475,7 @@ function setPracticeLevel(level) {
 function renderPracticeProgress() {
   const list = document.getElementById('pProgressList');
   const items = practiceList.slice(0, 20);
-  document.getElementById('pProgressHd').textContent = `progress — ${Object.values(practiceProgress).filter(v => v >= 3).length} mastered`;
+  document.getElementById('pProgressHd').textContent = `Progress — ${Object.values(practiceProgress).filter(v => v >= 3).length} mastered`;
   list.innerHTML = items.map(item => {
     const key = normalize(item);
     const count = practiceProgress[key] || 0;
@@ -1567,7 +2488,7 @@ function renderPracticeProgress() {
       <span class="progress-word">${esc(item)}</span>
       ${mastered ? '<span class="mastered-badge">mastered</span>' : ''}
       <span class="progress-streak">${streakDots}</span>
-      <button class="practice-hear" onclick="hearWord('${esc(item).replace(/'/g, "\\'")}')" style="padding:3px 8px; font-size:11px;">🔊</button>
+      <button class="practice-hear" onclick="hearWord('${esc(item).replace(/'/g, "\\'")}')" style="padding:4px 10px; font-size:11px;">🔊</button>
     </div>`;
   }).join('');
 }
@@ -1587,7 +2508,15 @@ function loadPracticeProgress() {
   try { return JSON.parse(localStorage.getItem('cv_practice') || '{}'); } catch(_) { return {}; }
 }
 
-// Expose functions to inline onclick/onchange handlers (required under type="module")
+// Close modal by tapping outside the sheet
+document.getElementById('langModal').addEventListener('click', (ev) => {
+  if (ev.target.id === 'langModal') closeLangModal();
+});
+document.getElementById('learnedModal').addEventListener('click', (ev) => {
+  if (ev.target.id === 'learnedModal') closeLearnedModal();
+});
+
+// Expose functions to inline onclick/onchange handlers
 window.toggleListen = toggleListen;
 window.saveCorrection = saveCorrection;
 window.confirmCorrect = confirmCorrect;
@@ -1612,6 +2541,7 @@ window.togglePracticeMic = togglePracticeMic;
 window.nextPractice = nextPractice;
 window.skipPractice = skipPractice;
 window.setPracticeLevel = setPracticeLevel;
+window.toggleAutoApply = toggleAutoApply;
 </script>
 </body>
 </html>
