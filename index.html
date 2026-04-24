@@ -568,6 +568,50 @@
     text-transform: uppercase;
     margin-bottom: 12px;
   }
+  .daily-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; font-size: 12px; font-weight: 700;
+    background: var(--amber-bg); color: var(--amber);
+    border-radius: 999px; margin: 0 0 10px 8px;
+  }
+  .daily-badge strong { font-weight: 800; }
+  .bingo-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 4px; margin: 12px 0 10px;
+  }
+  .bingo-cell {
+    position: relative;
+    padding: 6px 3px; min-height: 52px;
+    background: var(--bg-subtle); border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 11px; font-weight: 600; line-height: 1.2;
+    color: var(--text2);
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s, background 0.15s, border-color 0.15s;
+  }
+  .bingo-cell:active { transform: scale(0.95); }
+  .bingo-cell.selected {
+    background: var(--accent-bg); border-color: var(--accent);
+    color: var(--accent);
+  }
+  .bingo-cell.marked {
+    background: var(--green-bg); border-color: var(--green);
+    color: var(--green); font-weight: 800;
+  }
+  .bingo-cell.marked::after {
+    content: '✓'; position: absolute; top: 2px; right: 4px;
+    font-size: 10px; font-weight: 900;
+  }
+  .bingo-status {
+    margin: 8px 0; padding: 10px 14px; border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 800; text-align: center;
+  }
+  .bingo-status.win {
+    background: var(--green-bg); color: var(--green);
+    font-size: 18px; letter-spacing: 1px;
+  }
   .practice-target {
     position: relative;
     font-family: var(--font-display);
@@ -1145,6 +1189,8 @@
     <button class="level-tab" id="lvlPhrase" onclick="setPracticeLevel('phrase')">Phrases</button>
     <button class="level-tab" id="lvlSentence" onclick="setPracticeLevel('sentence')">Sentences</button>
     <button class="level-tab" id="lvlPairs" onclick="setPracticeLevel('pairs')">Pairs</button>
+    <button class="level-tab" id="lvlDaily" onclick="setPracticeLevel('daily')">Daily</button>
+    <button class="level-tab" id="lvlBingo" onclick="setPracticeLevel('bingo')">Bingo</button>
   </div>
 
   <div class="streak-bar">
@@ -1155,8 +1201,12 @@
 
   <div class="practice-card">
     <div class="practice-level" id="pLevel">word</div>
+    <div class="daily-badge" id="dailyBadge" style="display:none">🔥 <span>Daily streak: <strong id="dailyStreakVal">0</strong></span></div>
     <div class="practice-target" id="pTarget">—</div>
+    <div class="bingo-grid" id="bingoGrid" style="display:none"></div>
+    <div id="bingoStatus" class="bingo-status" style="display:none"></div>
     <button class="practice-hear" onclick="hearTarget()">🔊 Hear it</button>
+    <button class="practice-nav-btn" id="bingoNewBtn" style="display:none; margin-top:10px;" onclick="newBingoBoard()">🎲 New board</button>
     <div class="practice-tip" id="pTip"></div>
   </div>
 
@@ -2350,7 +2400,144 @@ const minimalPairs = [
   { word: 'pen',   contrast: 'pan',   sound: 'e',  focus: 'Short "eh" for pen, open "ah" for pan.' }
 ];
 
+// ---- Daily Word ----
+const dailyPool = [
+  'three','think','this','that','voice','very','water','what','where','when',
+  'with','would','people','please','because','before','better','something',
+  'everything','nothing','another','together','different','hello','thank you',
+  'excuse me','light','right','ship','chair','vest','wine','fan','seat',
+  'breathe','family','weather','remember','important','beautiful'
+];
+
+function getTodayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function getYesterdayKey() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function getDailyWord() {
+  const d = new Date();
+  const dayNum = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  return dailyPool[dayNum % dailyPool.length];
+}
+
+let dailyState = loadDailyState();
+
+function loadDailyState() {
+  try { return JSON.parse(localStorage.getItem('cv_daily') || '{}'); }
+  catch (e) { return {}; }
+}
+function saveDailyState() {
+  try { localStorage.setItem('cv_daily', JSON.stringify(dailyState)); } catch (e) {}
+}
+function isMasteredToday() {
+  return dailyState.lastMasteredDate === getTodayKey();
+}
+function masterDailyIfNeeded() {
+  const today = getTodayKey();
+  if (dailyState.lastMasteredDate === today) return;
+  dailyState.streak = dailyState.lastMasteredDate === getYesterdayKey() ? (dailyState.streak || 0) + 1 : 1;
+  dailyState.lastMasteredDate = today;
+  saveDailyState();
+}
+
+// ---- Bingo ----
+let bingoBoard = [];
+let bingoMarks = [];
+let bingoSelected = null;
+let bingoWon = false;
+
+function newBingoBoard() {
+  const pool = [...defaultWords, ...dailyPool];
+  const uniq = [...new Set(pool)];
+  const shuffled = uniq.sort(() => Math.random() - 0.5);
+  bingoBoard = shuffled.slice(0, 25);
+  bingoMarks = new Array(25).fill(false);
+  bingoSelected = null;
+  bingoWon = false;
+  renderBingoBoard();
+  const statusEl = document.getElementById('bingoStatus');
+  statusEl.style.display = 'none';
+  statusEl.className = 'bingo-status';
+  document.getElementById('pMicLabel').textContent = 'Tap a word to pick it';
+  const hearBtn = document.querySelector('.practice-card .practice-hear');
+  if (hearBtn) hearBtn.style.display = 'none';
+}
+
+function renderBingoBoard() {
+  const grid = document.getElementById('bingoGrid');
+  grid.innerHTML = bingoBoard.map((word, i) => {
+    const cls = ['bingo-cell'];
+    if (bingoMarks[i]) cls.push('marked');
+    if (bingoSelected === i) cls.push('selected');
+    return `<div class="${cls.join(' ')}" onclick="selectBingoCell(${i})">${esc(word)}</div>`;
+  }).join('');
+}
+
+function selectBingoCell(idx) {
+  if (bingoWon || bingoMarks[idx]) return;
+  bingoSelected = idx;
+  renderBingoBoard();
+  document.getElementById('pMicLabel').textContent = 'tap mic and say "' + bingoBoard[idx] + '"';
+  const hearBtn = document.querySelector('.practice-card .practice-hear');
+  if (hearBtn) hearBtn.style.display = '';
+}
+
+function checkBingoResult(heard) {
+  if (bingoSelected === null || bingoWon) return;
+  const target = bingoBoard[bingoSelected];
+  const ratio = similarity(normalize(heard), normalize(target));
+  if (normalize(heard) === normalize(target) || ratio >= 0.8) {
+    bingoMarks[bingoSelected] = true;
+    const wonRow = checkBingoWin();
+    bingoSelected = null;
+    renderBingoBoard();
+    if (wonRow) {
+      bingoWon = true;
+      const statusEl = document.getElementById('bingoStatus');
+      statusEl.textContent = '🎉 BINGO! 🎉';
+      statusEl.className = 'bingo-status win';
+      statusEl.style.display = '';
+      document.getElementById('pMicLabel').textContent = 'Tap "New board" to play again';
+      const hearBtn = document.querySelector('.practice-card .practice-hear');
+      if (hearBtn) hearBtn.style.display = 'none';
+    } else {
+      document.getElementById('pMicLabel').textContent = 'Nice! Tap another word.';
+    }
+  } else {
+    document.getElementById('pMicLabel').textContent = 'Engine heard "' + heard + '" — try again';
+  }
+}
+
+function checkBingoWin() {
+  for (let r = 0; r < 5; r++) {
+    if (bingoMarks.slice(r * 5, r * 5 + 5).every(Boolean)) return true;
+  }
+  for (let c = 0; c < 5; c++) {
+    let all = true;
+    for (let r = 0; r < 5; r++) if (!bingoMarks[r * 5 + c]) { all = false; break; }
+    if (all) return true;
+  }
+  let d1 = true, d2 = true;
+  for (let i = 0; i < 5; i++) {
+    if (!bingoMarks[i * 5 + i]) d1 = false;
+    if (!bingoMarks[i * 5 + (4 - i)]) d2 = false;
+  }
+  return d1 || d2;
+}
+
 function buildPracticeList() {
+  if (practiceLevel === 'daily') {
+    return [getDailyWord()];
+  }
+  if (practiceLevel === 'bingo') {
+    return [];
+  }
   if (practiceLevel === 'pairs') {
     return minimalPairs.slice().sort((a, b) => {
       const aM = (practiceProgress[normalize(a.word)] || 0) >= 3 ? 1 : 0;
@@ -2390,27 +2577,70 @@ function initPractice() {
 let currentPair = null;
 
 function showPracticeItem() {
-  if (!practiceList.length) {
-    document.getElementById('pTarget').textContent = 'No words to practice yet. Go to Record and speak!';
-    document.getElementById('pTip').textContent = '';
-    return;
-  }
-  const item = practiceList[practiceIndex % practiceList.length];
-  document.getElementById('pLevel').textContent = practiceLevel;
   const targetEl = document.getElementById('pTarget');
-  if (practiceLevel === 'pairs' && item && typeof item === 'object') {
-    currentPair = item;
-    targetEl.innerHTML = `<span class="pair-word">${esc(item.word)}</span><span class="pair-vs">vs</span><span class="pair-contrast">${esc(item.contrast)}</span>`;
-  } else {
-    currentPair = null;
-    targetEl.textContent = item;
-  }
+  const dailyBadge = document.getElementById('dailyBadge');
+  const bingoGrid = document.getElementById('bingoGrid');
+  const bingoStatus = document.getElementById('bingoStatus');
+  const bingoNewBtn = document.getElementById('bingoNewBtn');
+  const hearBtn = document.querySelector('.practice-card .practice-hear');
+
+  // reset common UI
   document.getElementById('pResult').className = 'practice-result';
   document.getElementById('pHearHeardBtn').style.display = 'none';
   document.getElementById('pDiff').innerHTML = '';
   document.getElementById('pTips').innerHTML = '';
-  document.getElementById('pMicLabel').textContent = practiceLevel === 'pairs' ? 'tap mic and say the left word' : 'tap to try saying it';
   document.getElementById('pMicBtn').classList.remove('on');
+  dailyBadge.style.display = 'none';
+  bingoGrid.style.display = 'none';
+  bingoStatus.style.display = 'none';
+  bingoNewBtn.style.display = 'none';
+  targetEl.style.display = '';
+  if (hearBtn) hearBtn.style.display = '';
+  currentPair = null;
+
+  document.getElementById('pLevel').textContent = practiceLevel;
+
+  if (practiceLevel === 'daily') {
+    const word = getDailyWord();
+    targetEl.textContent = word;
+    dailyBadge.style.display = '';
+    document.getElementById('dailyStreakVal').textContent = dailyState.streak || 0;
+    if (isMasteredToday()) {
+      document.getElementById('pMicLabel').textContent = '✓ Mastered today! Come back tomorrow.';
+    } else {
+      document.getElementById('pMicLabel').textContent = 'tap mic and say "' + word + '"';
+    }
+    showPronunciationTip(word);
+    updatePracticeStats();
+    return;
+  }
+
+  if (practiceLevel === 'bingo') {
+    targetEl.style.display = 'none';
+    bingoGrid.style.display = '';
+    bingoNewBtn.style.display = '';
+    if (!bingoBoard.length) newBingoBoard();
+    else renderBingoBoard();
+    document.getElementById('pTip').textContent = '';
+    document.getElementById('pMicLabel').textContent = bingoSelected === null ? 'Tap a word to pick it' : 'tap mic and say "' + bingoBoard[bingoSelected] + '"';
+    if (hearBtn) hearBtn.style.display = bingoSelected !== null ? '' : 'none';
+    updatePracticeStats();
+    return;
+  }
+
+  if (!practiceList.length) {
+    targetEl.textContent = 'No words to practice yet. Go to Record and speak!';
+    document.getElementById('pTip').textContent = '';
+    return;
+  }
+  const item = practiceList[practiceIndex % practiceList.length];
+  if (practiceLevel === 'pairs' && item && typeof item === 'object') {
+    currentPair = item;
+    targetEl.innerHTML = `<span class="pair-word">${esc(item.word)}</span><span class="pair-vs">vs</span><span class="pair-contrast">${esc(item.contrast)}</span>`;
+  } else {
+    targetEl.textContent = item;
+  }
+  document.getElementById('pMicLabel').textContent = practiceLevel === 'pairs' ? 'tap mic and say the left word' : 'tap to try saying it';
   showPronunciationTip(item);
   updatePracticeStats();
 }
@@ -2465,7 +2695,10 @@ function showPronunciationTip(word) {
 }
 
 function hearTarget() {
-  const text = currentPair ? currentPair.word : document.getElementById('pTarget').textContent;
+  let text;
+  if (practiceLevel === 'bingo') text = bingoSelected !== null ? bingoBoard[bingoSelected] : '';
+  else if (currentPair) text = currentPair.word;
+  else text = document.getElementById('pTarget').textContent;
   if (!text || text === '—') return;
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = currentLang;
@@ -2480,7 +2713,19 @@ function togglePracticeMic() {
 }
 
 function startPracticeMic() {
-  const target = currentPair ? currentPair.word : document.getElementById('pTarget').textContent;
+  let target;
+  if (practiceLevel === 'bingo') {
+    if (bingoWon) { document.getElementById('pMicLabel').textContent = 'Tap "New board" to play again'; return; }
+    if (bingoSelected === null) { document.getElementById('pMicLabel').textContent = 'Tap a word to pick it first'; return; }
+    target = bingoBoard[bingoSelected];
+  } else if (practiceLevel === 'daily') {
+    if (isMasteredToday()) { document.getElementById('pMicLabel').textContent = '✓ Mastered today! Come back tomorrow.'; return; }
+    target = getDailyWord();
+  } else if (currentPair) {
+    target = currentPair.word;
+  } else {
+    target = document.getElementById('pTarget').textContent;
+  }
   if (!target || target === '—') return;
   if (listening) stopListen();
   if (tListening) stopTranslateMic();
@@ -2553,11 +2798,20 @@ function stopPracticeMic() {
 let lastPracticeHeard = '';
 
 function checkPracticeResult(heard, target) {
+  if (practiceLevel === 'bingo') {
+    checkBingoResult(heard);
+    return;
+  }
   const hNorm = normalize(heard);
   const tNorm = normalize(target);
   const pass = hNorm === tNorm;
   const ratio = similarity(hNorm, tNorm);
   const accepted = pass || ratio >= 0.8;
+
+  if (practiceLevel === 'daily' && accepted && !isMasteredToday()) {
+    masterDailyIfNeeded();
+    document.getElementById('dailyStreakVal').textContent = dailyState.streak || 0;
+  }
 
   const resEl = document.getElementById('pResult');
   const iconEl = document.getElementById('pIcon');
@@ -2809,10 +3063,12 @@ function skipPractice() {
 
 function setPracticeLevel(level) {
   practiceLevel = level;
-  document.getElementById('lvlWord').className = level === 'word' ? 'level-tab active' : 'level-tab';
-  document.getElementById('lvlPhrase').className = level === 'phrase' ? 'level-tab active' : 'level-tab';
-  document.getElementById('lvlSentence').className = level === 'sentence' ? 'level-tab active' : 'level-tab';
-  document.getElementById('lvlPairs').className = level === 'pairs' ? 'level-tab active' : 'level-tab';
+  ['Word','Phrase','Sentence','Pairs','Daily','Bingo'].forEach(k => {
+    const el = document.getElementById('lvl' + k);
+    if (!el) return;
+    const active = level === k.toLowerCase();
+    el.className = active ? 'level-tab active' : 'level-tab';
+  });
   initPractice();
 }
 
@@ -2886,6 +3142,8 @@ window.togglePracticeMic = togglePracticeMic;
 window.nextPractice = nextPractice;
 window.skipPractice = skipPractice;
 window.setPracticeLevel = setPracticeLevel;
+window.selectBingoCell = selectBingoCell;
+window.newBingoBoard = newBingoBoard;
 window.toggleAutoApply = toggleAutoApply;
 </script>
 </body>
