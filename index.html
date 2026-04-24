@@ -625,6 +625,44 @@
     font-family: var(--font-mono);
     font-size: 12px; color: var(--text3); margin-top: 6px;
   }
+  .result-diff {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-top: 12px; text-align: left;
+  }
+  .result-diff:empty { display: none; }
+  .diff-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: var(--radius-md);
+    background: var(--bg-subtle); font-size: 14px;
+  }
+  .diff-row.good {
+    background: var(--green-bg);
+    color: var(--green);
+  }
+  .diff-row.bad {
+    background: var(--red-bg);
+    color: var(--red);
+  }
+  .diff-row.bad .diff-heard { color: var(--text3); }
+  .diff-target { font-weight: 800; }
+  .diff-sep { font-size: 11px; opacity: 0.7; letter-spacing: 0.3px; text-transform: uppercase; }
+  .diff-heard { font-family: var(--font-mono); font-size: 13px; }
+  .diff-hear {
+    border: none; background: transparent;
+    font-size: 16px; padding: 2px 4px; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    color: inherit;
+  }
+  .diff-hear:active { transform: scale(0.9); }
+  .result-tips {
+    margin-top: 10px; padding: 10px 12px;
+    background: var(--amber-bg); border-radius: var(--radius-md);
+    color: var(--amber); font-size: 13px; line-height: 1.5;
+    text-align: left;
+  }
+  .result-tips:empty { display: none; }
+  .result-tips ul { padding-left: 18px; margin: 4px 0 0; }
+  .result-tips li { margin: 3px 0; }
 
   .practice-nav { display: flex; gap: 10px; margin-bottom: 16px; }
   .practice-nav-btn {
@@ -1118,6 +1156,8 @@
     <div class="result-icon" id="pIcon"></div>
     <div class="result-msg" id="pMsg"></div>
     <div class="result-heard" id="pHeard"></div>
+    <div class="result-diff" id="pDiff"></div>
+    <div class="result-tips" id="pTips"></div>
     <button class="practice-hear" id="pHearHeardBtn" onclick="hearWhatEngineHeard()" style="margin-top:10px; display:none;">🔊 Hear what engine heard</button>
   </div>
 
@@ -2301,6 +2341,8 @@ function showPracticeItem() {
   document.getElementById('pTarget').textContent = item;
   document.getElementById('pResult').className = 'practice-result';
   document.getElementById('pHearHeardBtn').style.display = 'none';
+  document.getElementById('pDiff').innerHTML = '';
+  document.getElementById('pTips').innerHTML = '';
   document.getElementById('pMicLabel').textContent = 'tap to try saying it';
   document.getElementById('pMicBtn').classList.remove('on');
   showPronunciationTip(item);
@@ -2478,6 +2520,8 @@ function checkPracticeResult(heard, target) {
     heardEl.textContent = 'Engine heard: "' + heard + '" instead of "' + target + '"';
     practiceStreak = 0;
   }
+  renderPracticeDiff(target, heard);
+  renderPracticeTips(target, heard, pass);
   updatePracticeStats();
   renderPracticeProgress();
 }
@@ -2489,6 +2533,88 @@ function hearWhatEngineHeard() {
   utt.rate = 0.85;
   speechSynthesis.cancel();
   speechSynthesis.speak(utt);
+}
+
+function hearSpecific(text) {
+  if (!text) return;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = currentLang;
+  utt.rate = 0.8;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utt);
+}
+
+function stripPunc(w) { return w.replace(/[^a-zA-Z']/g, '').toLowerCase(); }
+
+function renderPracticeDiff(target, heard) {
+  const diffEl = document.getElementById('pDiff');
+  const tWords = target.split(/\s+/).filter(Boolean);
+  const hWords = heard.split(/\s+/).filter(Boolean);
+  const max = Math.max(tWords.length, hWords.length);
+  const rows = [];
+  for (let i = 0; i < max; i++) {
+    const tw = tWords[i] || '';
+    const hw = hWords[i] || '';
+    const tClean = stripPunc(tw);
+    const hClean = stripPunc(hw);
+    const match = tClean && tClean === hClean;
+    if (!tw) {
+      rows.push(`<div class="diff-row bad"><span class="diff-sep">extra word</span><span class="diff-heard">"${esc(hw)}"</span></div>`);
+    } else if (!hw) {
+      rows.push(`<div class="diff-row bad"><span class="diff-target">${esc(tw)}</span><button class="diff-hear" onclick="hearSpecific(${JSON.stringify(tw)})">🔊</button><span class="diff-sep">missed</span></div>`);
+    } else if (match) {
+      rows.push(`<div class="diff-row good"><span class="diff-target">${esc(tw)}</span><span class="diff-sep">✓</span></div>`);
+    } else {
+      rows.push(`<div class="diff-row bad"><span class="diff-target">${esc(tw)}</span><button class="diff-hear" onclick="hearSpecific(${JSON.stringify(tw)})">🔊</button><span class="diff-sep">you said</span><span class="diff-heard">"${esc(hw)}"</span></div>`);
+    }
+  }
+  diffEl.innerHTML = rows.join('');
+}
+
+function renderPracticeTips(target, heard, pass) {
+  const tipsEl = document.getElementById('pTips');
+  if (pass) { tipsEl.innerHTML = ''; return; }
+  const tips = analyzePronunciation(target, heard);
+  if (!tips.length) { tipsEl.innerHTML = ''; return; }
+  tipsEl.innerHTML = '<strong>💡 To improve:</strong><ul>' + tips.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+}
+
+function analyzePronunciation(target, heard) {
+  const tips = [];
+  const t = target.toLowerCase();
+  const h = heard.toLowerCase();
+  const tWords = t.split(/\s+/).filter(Boolean);
+  const hWords = h.split(/\s+/).filter(Boolean);
+
+  if (/\bth/.test(t) && !/\bth/.test(h) && /\b[fvdtz]/.test(h)) {
+    tips.push('"th" sound — place your tongue tip between your teeth and blow gently. The engine heard an "f", "v", "d", or "t" instead.');
+  }
+  if (/l/.test(t) && !/l/.test(h) && /r/.test(h)) {
+    tips.push('"l" sound — touch your tongue tip to the ridge behind your upper teeth. Engine heard an "r".');
+  }
+  if (/\br/.test(t) && !/\br/.test(h) && /\bw/.test(h)) {
+    tips.push('"r" sound — curl your tongue back without touching the roof. Engine heard a "w".');
+  }
+  if (/\bv/.test(t) && !/\bv/.test(h) && /\bb/.test(h)) {
+    tips.push('"v" sound — gently bite your lower lip and let air flow through. Engine heard a "b".');
+  }
+  if (/\bp/.test(t) && !/\bp/.test(h) && /\bb/.test(h)) {
+    tips.push('"p" sound — press lips together then release a quick puff of air (no voice). Engine heard "b".');
+  }
+  if (/sh/.test(t) && !/sh/.test(h) && /s/.test(h)) {
+    tips.push('"sh" sound — push lips forward like a whistle, then release air. Engine heard a plain "s".');
+  }
+  if (tWords.length > hWords.length && (tWords.length - hWords.length) >= 1) {
+    const missing = tWords.filter(w => !hWords.includes(stripPunc(w)) && !hWords.includes(w));
+    if (missing.length) tips.push('Missing word(s): "' + missing.join(', ') + '". Speak each word clearly with a small pause between.');
+  }
+  if (hWords.length > tWords.length + 1) {
+    tips.push('Engine heard extra words — pause briefly between phrases and try a single steady utterance.');
+  }
+  if (!tips.length && similarity(normalize(t), normalize(h)) < 0.5) {
+    tips.push('Slow down and exaggerate each sound. Listen to "🔊 Hear it" again, then try matching the rhythm.');
+  }
+  return tips;
 }
 
 function similarity(a, b) {
@@ -2588,6 +2714,7 @@ window.copyTranslation = copyTranslation;
 window.hearTarget = hearTarget;
 window.hearWord = hearWord;
 window.hearWhatEngineHeard = hearWhatEngineHeard;
+window.hearSpecific = hearSpecific;
 window.togglePracticeMic = togglePracticeMic;
 window.nextPractice = nextPractice;
 window.skipPractice = skipPractice;
