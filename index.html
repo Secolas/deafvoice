@@ -1059,6 +1059,16 @@
     </div>
   </div>
 
+  <div class="section-hd">Add to dictionary</div>
+  <div class="card tight">
+    <div class="dict-row">
+      <input class="dict-input" id="dictFrom" placeholder="engine hears..." onfocus="prefillDictFromLatest(true)" onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
+      <span class="dict-arrow">→</span>
+      <input class="dict-input" id="dictTo" placeholder="you mean..." onkeydown="if(event.key==='Enter')addDictEntry()"/>
+      <button class="save-btn" onclick="addDictEntry()">Add</button>
+    </div>
+  </div>
+
   <div class="section-hd" id="tVocabHd">Learned vocabulary — 0 patterns</div>
   <div class="entries" id="tVocabList"></div>
 
@@ -1606,6 +1616,7 @@ async function addEntry(text, conf) {
   if (entries.length > 500) entries.pop();
   saveLocal();
   renderAll();
+  prefillDictFromLatest();
   try {
     const ref = await addDoc(entriesCol, {
       heard: entry.heard,
@@ -2200,6 +2211,31 @@ function applySuggestion(id) {
   if (suggestion !== e.heard) learnPattern(e.heard, suggestion);
 }
 
+// ---- Personal dictionary ----
+function prefillDictFromLatest(focusNext) {
+  const fromEl = document.getElementById('dictFrom');
+  if (!fromEl || fromEl.value) return;
+  const latest = entries[0];
+  if (!latest) return;
+  fromEl.value = latest.heard;
+  if (focusNext) {
+    const toEl = document.getElementById('dictTo');
+    setTimeout(() => toEl.focus(), 0);
+  }
+}
+
+function addDictEntry() {
+  const fromEl = document.getElementById('dictFrom');
+  const toEl = document.getElementById('dictTo');
+  const from = (fromEl.value || '').trim();
+  const to = (toEl.value || '').trim();
+  if (!from || !to) return;
+  learnPattern(from, to);
+  fromEl.value = '';
+  toEl.value = '';
+  renderVocabList();
+}
+
 // ---- Copy translation ----
 async function copyTranslation() {
   const text = document.getElementById('tOutput').textContent;
@@ -2369,7 +2405,7 @@ function startPracticeMic() {
   const btn = document.getElementById('pMicBtn');
   const pWaveEl = document.getElementById('pWave');
   const pWaveBars = pWaveEl.querySelectorAll('.wb');
-  let lastHeard = '';
+  let gotFinal = false;
   pRec.onstart = () => {
     pListening = true;
     btn.classList.add('on');
@@ -2381,22 +2417,22 @@ function startPracticeMic() {
     document.getElementById('pResult').className = 'practice-result';
   };
   pRec.onresult = (e) => {
-    let combined = '';
-    for (let i = 0; i < e.results.length; i++) combined += e.results[i][0].transcript + ' ';
-    combined = combined.trim();
-    if (combined) {
-      lastHeard = combined;
-      document.getElementById('pMicLabel').textContent = '"' + combined + '"';
+    let interim = '';
+    let finalText = '';
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
     }
-    const last = e.results[e.results.length - 1];
-    if (last && last.isFinal && combined) {
-      checkPracticeResult(combined, target);
+    finalText = finalText.trim();
+    if (interim) document.getElementById('pMicLabel').textContent = '"' + interim + '"';
+    if (finalText) {
+      gotFinal = true;
+      checkPracticeResult(finalText, target);
       try { pRec.stop(); } catch(_) {}
     }
   };
   pRec.onend = () => {
-    if (lastHeard) checkPracticeResult(lastHeard, target);
-    else document.getElementById('pMicLabel').textContent = "Didn't catch that — tap to try again";
+    if (!gotFinal) document.getElementById('pMicLabel').textContent = "Didn't catch that — tap to try again";
     stopPracticeMic();
   };
   pRec.onerror = (e) => {
