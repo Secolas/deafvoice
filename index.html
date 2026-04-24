@@ -1027,17 +1027,27 @@
 
   <div class="input-card">
     <div class="input-label">Your message</div>
-    <div class="input-row">
-      <textarea id="translateInput" class="translate-area" placeholder="Type here, or tap the mic to speak..." rows="3" oninput="liveTranslate()"></textarea>
-      <div class="mic-wrap" style="width:60px; height:60px;">
-        <div class="mic-btn" id="tMicBtn" onclick="toggleTranslateMic()" style="width:54px; height:54px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px; height:22px;">
-            <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
-            <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
-          </svg>
-        </div>
-        <div class="pulse-ring" id="tPulseRing" style="width:54px; height:54px;"></div>
+    <textarea id="translateInput" class="translate-area" placeholder="Type here, or tap the mic to speak..." rows="3" oninput="liveTranslate()"></textarea>
+  </div>
+
+  <div class="mic-section">
+    <div class="mic-wrap">
+      <div class="mic-btn" id="tMicBtn" onclick="toggleTranslateMic()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
       </div>
+      <div class="pulse-ring" id="tPulseRing"></div>
+    </div>
+    <div class="waveform" id="tWave">
+      <div class="wb" style="height:6px"></div><div class="wb" style="height:11px"></div>
+      <div class="wb" style="height:18px"></div><div class="wb" style="height:8px"></div>
+      <div class="wb" style="height:22px"></div><div class="wb" style="height:13px"></div>
+      <div class="wb" style="height:7px"></div><div class="wb" style="height:16px"></div>
+      <div class="wb" style="height:10px"></div>
     </div>
   </div>
 
@@ -1066,7 +1076,7 @@
   <div class="section-hd">Add to dictionary</div>
   <div class="card tight">
     <div class="dict-row">
-      <input class="dict-input" id="dictFrom" placeholder="engine hears..." onfocus="prefillDictFromLatest()" onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
+      <input class="dict-input" id="dictFrom" placeholder="engine hears..." onfocus="prefillDictFromLatest(true)" onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
       <span class="dict-arrow">→</span>
       <input class="dict-input" id="dictTo" placeholder="you mean..." onkeydown="if(event.key==='Enter')addDictEntry()"/>
       <button class="save-btn" onclick="addDictEntry()">Add</button>
@@ -1620,6 +1630,7 @@ async function addEntry(text, conf) {
   if (entries.length > 500) entries.pop();
   saveLocal();
   renderAll();
+  prefillDictFromLatest();
   try {
     const ref = await addDoc(entriesCol, {
       heard: entry.heard,
@@ -2104,7 +2115,7 @@ function liveTranslate() {
 }
 
 // ---- Translate mic ----
-let tRec, tListening = false;
+let tRec, tListening = false, tWaveTimer;
 
 function toggleTranslateMic() {
   if (!SR) return;
@@ -2115,15 +2126,24 @@ function startTranslateMic() {
   if (listening) stopListen();
   if (pListening) stopPracticeMic();
   tRec = new SR();
-  tRec.continuous = false;
+  tRec.continuous = true;
   tRec.interimResults = true;
   tRec.lang = currentLang;
   const btn = document.getElementById('tMicBtn');
-  tRec.onstart = () => { tListening = true; btn.classList.add('on'); };
+  const tWaveEl = document.getElementById('tWave');
+  const tWaveBars = tWaveEl.querySelectorAll('.wb');
+  tRec.onstart = () => {
+    tListening = true;
+    btn.classList.add('on');
+    tWaveEl.classList.add('live');
+    tWaveTimer = setInterval(() => {
+      tWaveBars.forEach((b,i) => { b.style.height = Math.round(baseH[i] + Math.random()*14) + 'px'; });
+    }, 100);
+  };
   tRec.onresult = (e) => {
     let text = '';
-    for (let i = 0; i < e.results.length; i++) text = e.results[i][0].transcript;
-    document.getElementById('translateInput').value = text;
+    for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+    document.getElementById('translateInput').value = text.trim();
     liveTranslate();
   };
   tRec.onend = () => { stopTranslateMic(); };
@@ -2138,8 +2158,14 @@ function startTranslateMic() {
 function stopTranslateMic() {
   if (tRec) { tRec.onend = null; try { tRec.stop(); } catch(_) {} }
   tListening = false;
+  clearInterval(tWaveTimer);
   const btn = document.getElementById('tMicBtn');
   btn.classList.remove('on');
+  const tWaveEl = document.getElementById('tWave');
+  if (tWaveEl) {
+    tWaveEl.classList.remove('live');
+    tWaveEl.querySelectorAll('.wb').forEach((b,i) => b.style.height = baseH[i] + 'px');
+  }
 }
 
 function renderVocabList() {
@@ -2200,14 +2226,16 @@ function applySuggestion(id) {
 }
 
 // ---- Personal dictionary ----
-function prefillDictFromLatest() {
+function prefillDictFromLatest(focusNext) {
   const fromEl = document.getElementById('dictFrom');
-  if (fromEl.value) return;
+  if (!fromEl || fromEl.value) return;
   const latest = entries[0];
   if (!latest) return;
   fromEl.value = latest.heard;
-  const toEl = document.getElementById('dictTo');
-  setTimeout(() => toEl.focus(), 0);
+  if (focusNext) {
+    const toEl = document.getElementById('dictTo');
+    setTimeout(() => toEl.focus(), 0);
+  }
 }
 
 function addDictEntry() {
@@ -2248,7 +2276,7 @@ let practiceList = [];
 let practiceIndex = 0;
 let practiceStreak = 0;
 let practiceProgress = loadPracticeProgress();
-let pRec, pListening = false;
+let pRec, pListening = false, pWaveTimer;
 
 const defaultWords = [
   'three','think','this','that','the','voice','very','water','what','where',
@@ -2385,13 +2413,13 @@ function startPracticeMic() {
   if (listening) stopListen();
   if (tListening) stopTranslateMic();
   pRec = new SR();
-  pRec.continuous = false;
+  pRec.continuous = true;
   pRec.interimResults = true;
   pRec.lang = currentLang;
   const btn = document.getElementById('pMicBtn');
   const pWaveEl = document.getElementById('pWave');
   const pWaveBars = pWaveEl.querySelectorAll('.wb');
-  let pWaveTimer;
+  let gotFinal = false;
   pRec.onstart = () => {
     pListening = true;
     btn.classList.add('on');
@@ -2403,16 +2431,26 @@ function startPracticeMic() {
     document.getElementById('pResult').className = 'practice-result';
   };
   pRec.onresult = (e) => {
-    let heard = '';
+    let interim = '';
+    let finalText = '';
     for (let i = 0; i < e.results.length; i++) {
-      if (e.results[i].isFinal) heard = e.results[i][0].transcript.trim();
-      else document.getElementById('pMicLabel').textContent = '"' + e.results[i][0].transcript + '"';
+      if (e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
     }
-    if (heard) checkPracticeResult(heard, target);
+    finalText = finalText.trim();
+    if (interim) document.getElementById('pMicLabel').textContent = '"' + interim + '"';
+    if (finalText) {
+      gotFinal = true;
+      checkPracticeResult(finalText, target);
+      try { pRec.stop(); } catch(_) {}
+    }
   };
-  pRec.onend = () => { stopPracticeMic(); };
+  pRec.onend = () => {
+    if (!gotFinal) document.getElementById('pMicLabel').textContent = "Didn't catch that — tap to try again";
+    stopPracticeMic();
+  };
   pRec.onerror = (e) => {
-    const msgs = { 'not-allowed': 'Mic denied — check browser settings', 'no-speech': 'No speech heard — try again', 'network': 'Network error', 'aborted': 'Mic busy — try again' };
+    const msgs = { 'not-allowed': 'Mic denied — check browser settings', 'no-speech': "Didn't hear anything — try again", 'network': 'Network error', 'aborted': 'Mic busy — try again' };
     document.getElementById('pMicLabel').textContent = msgs[e.error] || 'Mic error — tap to retry';
     stopPracticeMic();
   };
@@ -2427,6 +2465,7 @@ function startPracticeMic() {
 function stopPracticeMic() {
   if (pRec) { pRec.onend = null; try { pRec.stop(); } catch(_) {} }
   pListening = false;
+  clearInterval(pWaveTimer);
   const btn = document.getElementById('pMicBtn');
   btn.classList.remove('on');
   const pWaveEl = document.getElementById('pWave');
