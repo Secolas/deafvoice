@@ -1066,7 +1066,7 @@
   <div class="section-hd">Add to dictionary</div>
   <div class="card tight">
     <div class="dict-row">
-      <input class="dict-input" id="dictFrom" placeholder="engine hears..." onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
+      <input class="dict-input" id="dictFrom" placeholder="engine hears..." onfocus="prefillDictFromLatest()" onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
       <span class="dict-arrow">→</span>
       <input class="dict-input" id="dictTo" placeholder="you mean..." onkeydown="if(event.key==='Enter')addDictEntry()"/>
       <button class="save-btn" onclick="addDictEntry()">Add</button>
@@ -2192,6 +2192,16 @@ function applySuggestion(id) {
 }
 
 // ---- Personal dictionary ----
+function prefillDictFromLatest() {
+  const fromEl = document.getElementById('dictFrom');
+  if (fromEl.value) return;
+  const latest = entries[0];
+  if (!latest) return;
+  fromEl.value = latest.heard;
+  const toEl = document.getElementById('dictTo');
+  setTimeout(() => toEl.focus(), 0);
+}
+
 function addDictEntry() {
   const fromEl = document.getElementById('dictFrom');
   const toEl = document.getElementById('dictTo');
@@ -2534,6 +2544,7 @@ window.liveTranslate = liveTranslate;
 window.toggleTranslateMic = toggleTranslateMic;
 window.applySuggestion = applySuggestion;
 window.addDictEntry = addDictEntry;
+window.prefillDictFromLatest = prefillDictFromLatest;
 window.copyTranslation = copyTranslation;
 window.hearTarget = hearTarget;
 window.hearWord = hearWord;
