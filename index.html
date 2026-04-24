@@ -2419,7 +2419,7 @@ function startPracticeMic() {
   const btn = document.getElementById('pMicBtn');
   const pWaveEl = document.getElementById('pWave');
   const pWaveBars = pWaveEl.querySelectorAll('.wb');
-  let gotFinal = false;
+  let lastHeard = '';
   pRec.onstart = () => {
     pListening = true;
     btn.classList.add('on');
@@ -2431,22 +2431,22 @@ function startPracticeMic() {
     document.getElementById('pResult').className = 'practice-result';
   };
   pRec.onresult = (e) => {
-    let interim = '';
-    let finalText = '';
-    for (let i = 0; i < e.results.length; i++) {
-      if (e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
-      else interim += e.results[i][0].transcript;
+    let combined = '';
+    for (let i = 0; i < e.results.length; i++) combined += e.results[i][0].transcript + ' ';
+    combined = combined.trim();
+    if (combined) {
+      lastHeard = combined;
+      document.getElementById('pMicLabel').textContent = '"' + combined + '"';
     }
-    finalText = finalText.trim();
-    if (interim) document.getElementById('pMicLabel').textContent = '"' + interim + '"';
-    if (finalText) {
-      gotFinal = true;
-      checkPracticeResult(finalText, target);
+    const last = e.results[e.results.length - 1];
+    if (last && last.isFinal && combined) {
+      checkPracticeResult(combined, target);
       try { pRec.stop(); } catch(_) {}
     }
   };
   pRec.onend = () => {
-    if (!gotFinal) document.getElementById('pMicLabel').textContent = "Didn't catch that — tap to try again";
+    if (lastHeard) checkPracticeResult(lastHeard, target);
+    else document.getElementById('pMicLabel').textContent = "Didn't catch that — tap to try again";
     stopPracticeMic();
   };
   pRec.onerror = (e) => {
