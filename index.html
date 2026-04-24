@@ -1123,6 +1123,7 @@
     <div class="result-icon" id="pIcon"></div>
     <div class="result-msg" id="pMsg"></div>
     <div class="result-heard" id="pHeard"></div>
+    <button class="practice-hear" id="pHearHeardBtn" onclick="hearWhatEngineHeard()" style="margin-top:10px; display:none;">🔊 Hear what engine heard</button>
   </div>
 
   <div class="practice-nav">
@@ -1730,7 +1731,7 @@ function renderEntries() {
       ${suggestHtml}
       <div class="entry-correct">
         <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection('${e.id}');this.blur();}"/>
-        <button class="save-btn" onclick="saveCorrection('${e.id}')">Add to dictionary</button>
+        <button class="save-btn" onclick="saveCorrection('${e.id}')">Report</button>
         <button class="confirm-btn" title="Mark as correct — no typing needed" onclick="confirmCorrect('${e.id}')">✓</button>
       </div>
     </div>`;
@@ -2323,6 +2324,7 @@ function showPracticeItem() {
   document.getElementById('pLevel').textContent = practiceLevel;
   document.getElementById('pTarget').textContent = item;
   document.getElementById('pResult').className = 'practice-result';
+  document.getElementById('pHearHeardBtn').style.display = 'none';
   document.getElementById('pMicLabel').textContent = 'tap to try saying it';
   document.getElementById('pMicBtn').classList.remove('on');
   showPronunciationTip(item);
@@ -2459,6 +2461,8 @@ function stopPracticeMic() {
   pWaveEl.querySelectorAll('.wb').forEach((b,i) => b.style.height = baseH[i] + 'px');
 }
 
+let lastPracticeHeard = '';
+
 function checkPracticeResult(heard, target) {
   const hNorm = normalize(heard);
   const tNorm = normalize(target);
@@ -2470,6 +2474,10 @@ function checkPracticeResult(heard, target) {
   const iconEl = document.getElementById('pIcon');
   const msgEl = document.getElementById('pMsg');
   const heardEl = document.getElementById('pHeard');
+  const hearBtn = document.getElementById('pHearHeardBtn');
+
+  lastPracticeHeard = heard;
+  hearBtn.style.display = heard ? '' : 'none';
 
   if (accepted) {
     resEl.className = 'practice-result pass';
@@ -2480,7 +2488,6 @@ function checkPracticeResult(heard, target) {
     const pKey = normalize(target);
     practiceProgress[pKey] = (practiceProgress[pKey] || 0) + 1;
     savePracticeProgress();
-    // Best streak tracking (for Progress view)
     const best = parseInt(localStorage.getItem('cv_best_streak') || '0', 10);
     if (practiceStreak > best) localStorage.setItem('cv_best_streak', String(practiceStreak));
   } else {
@@ -2492,6 +2499,15 @@ function checkPracticeResult(heard, target) {
   }
   updatePracticeStats();
   renderPracticeProgress();
+}
+
+function hearWhatEngineHeard() {
+  if (!lastPracticeHeard) return;
+  const utt = new SpeechSynthesisUtterance(lastPracticeHeard);
+  utt.lang = currentLang;
+  utt.rate = 0.85;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utt);
 }
 
 function similarity(a, b) {
@@ -2590,6 +2606,7 @@ window.applySuggestion = applySuggestion;
 window.copyTranslation = copyTranslation;
 window.hearTarget = hearTarget;
 window.hearWord = hearWord;
+window.hearWhatEngineHeard = hearWhatEngineHeard;
 window.togglePracticeMic = togglePracticeMic;
 window.nextPractice = nextPractice;
 window.skipPractice = skipPractice;
