@@ -118,6 +118,19 @@
     transition: background 0.15s, transform 0.1s;
   }
   .lang-pill:active { transform: scale(0.96); }
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text3);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s, background 0.15s, transform 0.1s;
+  }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .icon-btn:active { transform: scale(0.94); }
+  .icon-btn.active { color: var(--accent); border-color: var(--accent); }
 
   /* LAYOUT */
   .app-main {
@@ -1059,6 +1072,9 @@
   <div class="logo"><div class="logo-mark">D</div>Deaf<span>Voice</span></div>
   <div class="header-right">
     <div class="lang-pill" id="langPill" onclick="openLangModal()">EN · US</div>
+    <button class="icon-btn" id="tabSettings" title="Settings" onclick="switchTab('settings')" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </div>
 </header>
 
@@ -1394,10 +1410,6 @@
   <button class="nav-btn" id="tabProgress" onclick="switchTab('progress')">
     <svg viewBox="0 0 24 24"><path d="M3 20h18"/><rect x="5" y="10" width="3" height="10"/><rect x="10.5" y="5" width="3" height="15"/><rect x="16" y="13" width="3" height="7"/></svg>
     Progress
-  </button>
-  <button class="nav-btn" id="tabSettings" onclick="switchTab('settings')">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    You
   </button>
 </nav>
 
