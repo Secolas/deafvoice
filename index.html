@@ -335,6 +335,7 @@
   .entry-correct {
     padding: 4px 12px 12px;
     display: flex; gap: 6px; align-items: center;
+    flex-wrap: wrap;
   }
   .correct-input {
     flex: 1; padding: 9px 12px; font-size: 14px;
@@ -353,6 +354,7 @@
     cursor: pointer; -webkit-tap-highlight-color: transparent;
     transition: transform 0.1s, opacity 0.15s;
     font-family: var(--font-body);
+    white-space: nowrap;
   }
   .save-btn:active { opacity: 0.8; transform: scale(0.96); }
 
@@ -495,22 +497,6 @@
   .coverage-label strong { color: var(--text); font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
   .coverage-track { height: 6px; background: rgba(148,163,184,0.15); border-radius: 999px; overflow: hidden; }
   .coverage-fill { height: 100%; border-radius: 999px; background: var(--gradient-xp); transition: width .4s; }
-
-  .dict-row {
-    display: flex; gap: 8px; align-items: center;
-    flex-wrap: wrap; margin-bottom: 10px;
-  }
-  .dict-input {
-    flex: 1; min-width: 100px; padding: 10px 12px;
-    font-size: 14px; border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--bg-subtle); color: var(--text);
-    font-family: var(--font-body);
-    -webkit-appearance: none; appearance: none;
-  }
-  .dict-input:focus { outline: none; border-color: var(--accent); }
-  .dict-input::placeholder { color: var(--text4); }
-  .dict-arrow { color: var(--text4); font-size: 16px; }
 
   /* PRACTICE VIEW */
   .level-tabs {
@@ -1744,7 +1730,7 @@ function renderEntries() {
       ${suggestHtml}
       <div class="entry-correct">
         <input class="correct-input" id="inp_${e.id}" placeholder="type what you actually said..." onkeydown="if(event.key==='Enter'){saveCorrection('${e.id}');this.blur();}"/>
-        <button class="save-btn" onclick="saveCorrection('${e.id}')">Save</button>
+        <button class="save-btn" onclick="saveCorrection('${e.id}')">Add to dictionary</button>
         <button class="confirm-btn" title="Mark as correct — no typing needed" onclick="confirmCorrect('${e.id}')">✓</button>
       </div>
     </div>`;
@@ -2601,8 +2587,6 @@ window.switchTab = switchTab;
 window.liveTranslate = liveTranslate;
 window.toggleTranslateMic = toggleTranslateMic;
 window.applySuggestion = applySuggestion;
-window.addDictEntry = addDictEntry;
-window.prefillDictFromLatest = prefillDictFromLatest;
 window.copyTranslation = copyTranslation;
 window.hearTarget = hearTarget;
 window.hearWord = hearWord;
