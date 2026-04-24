@@ -575,6 +575,27 @@
     color: var(--text); line-height: 1.25;
     margin-bottom: 12px;
   }
+  .pair-word, .pair-contrast {
+    display: inline-block; padding: 2px 10px; border-radius: var(--radius-md);
+  }
+  .pair-word { color: var(--accent); }
+  .pair-contrast { color: var(--text3); font-size: 22px; opacity: 0.75; }
+  .pair-vs {
+    margin: 0 10px; font-size: 13px; font-weight: 800;
+    color: var(--text3); letter-spacing: 0.5px;
+    vertical-align: middle;
+  }
+  .mouth-diagrams {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 10px; justify-content: center;
+  }
+  .mouth-svg {
+    width: 140px; height: 110px;
+    background: rgba(15,23,42,0.45);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 6px;
+  }
   .practice-hear {
     position: relative;
     padding: 8px 16px; font-size: 13px; font-weight: 700;
@@ -1115,6 +1136,7 @@
     <button class="level-tab active" id="lvlWord" onclick="setPracticeLevel('word')">Words</button>
     <button class="level-tab" id="lvlPhrase" onclick="setPracticeLevel('phrase')">Phrases</button>
     <button class="level-tab" id="lvlSentence" onclick="setPracticeLevel('sentence')">Sentences</button>
+    <button class="level-tab" id="lvlPairs" onclick="setPracticeLevel('pairs')">Pairs</button>
   </div>
 
   <div class="streak-bar">
@@ -2297,8 +2319,37 @@ const defaultSentences = [
   'I would like a glass of water','Can I have the check please',
   'Nice to meet you my name is Carlos'
 ];
+const minimalPairs = [
+  { word: 'three', contrast: 'tree',  sound: 'th', focus: 'For "th" put your tongue tip between your teeth and blow.' },
+  { word: 'think', contrast: 'sink',  sound: 'th', focus: 'For "th" tongue goes between the teeth; "s" keeps tongue behind teeth.' },
+  { word: 'free',  contrast: 'three', sound: 'f',  focus: 'For "f" rest upper teeth on lower lip; "th" needs tongue between teeth.' },
+  { word: 'this',  contrast: 'dis',   sound: 'th', focus: 'Voiced "th" — tongue between teeth with gentle vibration.' },
+  { word: 'vest',  contrast: 'best',  sound: 'v',  focus: 'For "v" bite your lower lip lightly; "b" is lips together.' },
+  { word: 'very',  contrast: 'berry', sound: 'v',  focus: 'For "v" lower lip touches upper teeth and vibrates.' },
+  { word: 'light', contrast: 'right', sound: 'l',  focus: 'For "l" tongue tip touches ridge behind upper teeth; for "r" tongue curls back.' },
+  { word: 'long',  contrast: 'wrong', sound: 'l',  focus: 'For "l" tongue tip presses the roof behind teeth.' },
+  { word: 'lead',  contrast: 'read',  sound: 'l',  focus: 'For "l" tongue presses up; for "r" tongue curls back.' },
+  { word: 'ship',  contrast: 'chip',  sound: 'sh', focus: 'For "sh" keep airflow steady; "ch" is a sudden click.' },
+  { word: 'share', contrast: 'chair', sound: 'sh', focus: 'Push lips forward and release steady air for "sh".' },
+  { word: 'sheep', contrast: 'cheap', sound: 'sh', focus: 'Lips forward, continuous air for "sh".' },
+  { word: 'wine',  contrast: 'vine',  sound: 'w',  focus: 'Round lips for "w"; for "v" bite lower lip.' },
+  { word: 'west',  contrast: 'vest',  sound: 'w',  focus: 'For "w" lips round like a kiss; no tooth-lip contact.' },
+  { word: 'bat',   contrast: 'pat',   sound: 'b',  focus: '"b" vibrates with voice; "p" is a silent puff.' },
+  { word: 'big',   contrast: 'pig',   sound: 'b',  focus: '"b" voiced, "p" unvoiced — both lips together.' },
+  { word: 'fan',   contrast: 'pan',   sound: 'f',  focus: 'For "f" upper teeth rest on lower lip; "p" is lips together.' },
+  { word: 'fat',   contrast: 'pat',   sound: 'f',  focus: 'Teeth on lip for "f"; lips together for "p".' },
+  { word: 'seat',  contrast: 'sheet', sound: 's',  focus: '"s" keeps teeth close; "sh" pushes lips forward.' },
+  { word: 'pen',   contrast: 'pan',   sound: 'e',  focus: 'Short "eh" for pen, open "ah" for pan.' }
+];
 
 function buildPracticeList() {
+  if (practiceLevel === 'pairs') {
+    return minimalPairs.slice().sort((a, b) => {
+      const aM = (practiceProgress[normalize(a.word)] || 0) >= 3 ? 1 : 0;
+      const bM = (practiceProgress[normalize(b.word)] || 0) >= 3 ? 1 : 0;
+      return aM - bM;
+    });
+  }
   const fromLearned = [];
   for (const k of Object.keys(learnedMap)) {
     const m = learnedMap[k];
@@ -2328,6 +2379,8 @@ function initPractice() {
   renderPracticeProgress();
 }
 
+let currentPair = null;
+
 function showPracticeItem() {
   if (!practiceList.length) {
     document.getElementById('pTarget').textContent = 'No words to practice yet. Go to Record and speak!';
@@ -2336,12 +2389,19 @@ function showPracticeItem() {
   }
   const item = practiceList[practiceIndex % practiceList.length];
   document.getElementById('pLevel').textContent = practiceLevel;
-  document.getElementById('pTarget').textContent = item;
+  const targetEl = document.getElementById('pTarget');
+  if (practiceLevel === 'pairs' && item && typeof item === 'object') {
+    currentPair = item;
+    targetEl.innerHTML = `<span class="pair-word">${esc(item.word)}</span><span class="pair-vs">vs</span><span class="pair-contrast">${esc(item.contrast)}</span>`;
+  } else {
+    currentPair = null;
+    targetEl.textContent = item;
+  }
   document.getElementById('pResult').className = 'practice-result';
   document.getElementById('pHearHeardBtn').style.display = 'none';
   document.getElementById('pDiff').innerHTML = '';
   document.getElementById('pTips').innerHTML = '';
-  document.getElementById('pMicLabel').textContent = 'tap to try saying it';
+  document.getElementById('pMicLabel').textContent = practiceLevel === 'pairs' ? 'tap mic and say the left word' : 'tap to try saying it';
   document.getElementById('pMicBtn').classList.remove('on');
   showPronunciationTip(item);
   updatePracticeStats();
@@ -2397,7 +2457,7 @@ function showPronunciationTip(word) {
 }
 
 function hearTarget() {
-  const text = document.getElementById('pTarget').textContent;
+  const text = currentPair ? currentPair.word : document.getElementById('pTarget').textContent;
   if (!text || text === '—') return;
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = currentLang;
@@ -2412,7 +2472,7 @@ function togglePracticeMic() {
 }
 
 function startPracticeMic() {
-  const target = document.getElementById('pTarget').textContent;
+  const target = currentPair ? currentPair.word : document.getElementById('pTarget').textContent;
   if (!target || target === '—') return;
   if (listening) stopListen();
   if (tListening) stopTranslateMic();
@@ -2572,9 +2632,115 @@ function renderPracticeDiff(target, heard) {
 function renderPracticeTips(target, heard, pass) {
   const tipsEl = document.getElementById('pTips');
   if (pass) { tipsEl.innerHTML = ''; return; }
-  const tips = analyzePronunciation(target, heard);
-  if (!tips.length) { tipsEl.innerHTML = ''; return; }
-  tipsEl.innerHTML = '<strong>💡 To improve:</strong><ul>' + tips.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+  const tips = [];
+  const sounds = new Set();
+  if (currentPair) {
+    const hn = normalize(heard);
+    const cn = normalize(currentPair.contrast);
+    if (hn === cn || similarity(hn, cn) >= 0.8) {
+      tips.push('Engine heard "' + currentPair.contrast + '" instead of "' + currentPair.word + '". ' + currentPair.focus);
+    }
+    if (currentPair.sound) sounds.add(currentPair.sound);
+  }
+  tips.push(...analyzePronunciation(target, heard));
+  detectProblemSounds(target, heard).forEach(s => sounds.add(s));
+  if (!tips.length && !sounds.size) { tipsEl.innerHTML = ''; return; }
+  const tipsList = tips.length ? '<ul>' + tips.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>' : '';
+  const diagrams = [...sounds].map(s => makeMouthDiagram(s)).filter(Boolean).join('');
+  const diagramsBlock = diagrams ? '<div class="mouth-diagrams">' + diagrams + '</div>' : '';
+  tipsEl.innerHTML = '<strong>💡 To improve:</strong>' + tipsList + diagramsBlock;
+}
+
+function detectProblemSounds(target, heard) {
+  const sounds = [];
+  const t = target.toLowerCase();
+  const h = heard.toLowerCase();
+  if (/th/.test(t) && !/th/.test(h)) sounds.push('th');
+  if (/l/.test(t) && /r/.test(h) && !/l/.test(h)) sounds.push('l');
+  if (/r/.test(t) && /w/.test(h) && !/r/.test(h)) sounds.push('r');
+  if (/v/.test(t) && /b/.test(h) && !/v/.test(h)) sounds.push('v');
+  if (/p/.test(t) && /b/.test(h) && !/p/.test(h)) sounds.push('p');
+  if (/f/.test(t) && /p/.test(h) && !/f/.test(h)) sounds.push('f');
+  if (/sh/.test(t) && /s/.test(h) && !/sh/.test(h)) sounds.push('sh');
+  if (/w/.test(t) && /v/.test(h) && !/w/.test(h)) sounds.push('w');
+  return sounds;
+}
+
+function makeMouthDiagram(sound) {
+  const base = {
+    bgStroke: '#94a3b8',
+    teeth: '#f8fafc',
+    tongue: '#fb7185',
+    text: '#cbd5e1',
+    air: '#60a5fa'
+  };
+  const head = `<path d="M20 6 Q 4 40 18 78" stroke="${base.bgStroke}" stroke-width="2" fill="none"/>`;
+  const nose = `<path d="M18 34 Q 8 38 18 42" stroke="${base.bgStroke}" stroke-width="1.5" fill="none"/>`;
+  const lipCurve = (y) => `<path d="M20 ${y} Q 50 ${y-1} 78 ${y}" stroke="${base.bgStroke}" stroke-width="1.5" fill="none"/>`;
+  const diagrams = {
+    th: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <rect x="62" y="38" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      <rect x="62" y="52" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      ${lipCurve(38)}${lipCurve(62)}
+      <ellipse cx="73" cy="49" rx="7" ry="4" fill="${base.tongue}"/>
+      <path d="M84 49 L95 49" stroke="${base.air}" stroke-width="2"/>
+      <polygon points="95,45 99,49 95,53" fill="${base.air}"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">TH · tongue between teeth</text>
+    </svg>`,
+    l: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <rect x="62" y="38" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      <rect x="62" y="52" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      ${lipCurve(38)}${lipCurve(62)}
+      <path d="M40 58 Q 55 48 66 42" stroke="${base.tongue}" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">L · tongue tip to ridge</text>
+    </svg>`,
+    r: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <rect x="62" y="38" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      <rect x="62" y="52" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      ${lipCurve(38)}${lipCurve(62)}
+      <path d="M58 58 Q 48 50 44 42 Q 46 52 56 54" stroke="${base.tongue}" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">R · curl tongue back</text>
+    </svg>`,
+    v: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <rect x="62" y="38" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      ${lipCurve(38)}
+      <path d="M20 62 Q 50 72 78 62 Q 72 56 62 56" stroke="${base.bgStroke}" stroke-width="1.5" fill="#f87171" fill-opacity="0.4"/>
+      <path d="M84 50 L95 50" stroke="${base.air}" stroke-width="2" stroke-dasharray="3 2"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">V · teeth on lower lip (voiced)</text>
+    </svg>`,
+    f: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <rect x="62" y="38" width="10" height="8" fill="${base.teeth}" stroke="${base.bgStroke}"/>
+      ${lipCurve(38)}
+      <path d="M20 62 Q 50 72 78 62 Q 72 56 62 56" stroke="${base.bgStroke}" stroke-width="1.5" fill="#f87171" fill-opacity="0.4"/>
+      <path d="M84 50 L95 50" stroke="${base.air}" stroke-width="2"/>
+      <polygon points="95,46 99,50 95,54" fill="${base.air}"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">F · teeth on lower lip (air)</text>
+    </svg>`,
+    p: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <path d="M20 50 Q 50 44 78 50 Q 50 56 20 50 Z" fill="#f87171" fill-opacity="0.4" stroke="${base.bgStroke}"/>
+      <path d="M84 50 L95 50" stroke="${base.air}" stroke-width="3"/>
+      <polygon points="95,45 99,50 95,55" fill="${base.air}"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">P · lips together, puff out</text>
+    </svg>`,
+    sh: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <ellipse cx="78" cy="50" rx="12" ry="10" fill="none" stroke="${base.bgStroke}" stroke-width="1.5"/>
+      <path d="M92 50 L99 50" stroke="${base.air}" stroke-width="2"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">SH · lips forward, steady air</text>
+    </svg>`,
+    w: `<svg class="mouth-svg" viewBox="0 0 100 90">
+      ${head}${nose}
+      <circle cx="78" cy="50" r="9" fill="none" stroke="${base.bgStroke}" stroke-width="1.5"/>
+      <text x="20" y="86" fill="${base.text}" font-size="10" font-weight="700">W · round lips tight</text>
+    </svg>`
+  };
+  return diagrams[sound] || '';
 }
 
 function analyzePronunciation(target, heard) {
@@ -2644,6 +2810,7 @@ function setPracticeLevel(level) {
   document.getElementById('lvlWord').className = level === 'word' ? 'level-tab active' : 'level-tab';
   document.getElementById('lvlPhrase').className = level === 'phrase' ? 'level-tab active' : 'level-tab';
   document.getElementById('lvlSentence').className = level === 'sentence' ? 'level-tab active' : 'level-tab';
+  document.getElementById('lvlPairs').className = level === 'pairs' ? 'level-tab active' : 'level-tab';
   initPractice();
 }
 
