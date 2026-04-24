@@ -1486,6 +1486,8 @@ function toggleListen() {
 }
 
 function startListen() {
+  if (tListening) stopTranslateMic();
+  if (pListening) stopPracticeMic();
   rec = new SR();
   rec.continuous = true;
   rec.interimResults = true;
@@ -2110,6 +2112,8 @@ function toggleTranslateMic() {
 }
 
 function startTranslateMic() {
+  if (listening) stopListen();
+  if (pListening) stopPracticeMic();
   tRec = new SR();
   tRec.continuous = false;
   tRec.interimResults = true;
@@ -2124,7 +2128,11 @@ function startTranslateMic() {
   };
   tRec.onend = () => { stopTranslateMic(); };
   tRec.onerror = () => { stopTranslateMic(); };
-  tRec.start();
+  try {
+    tRec.start();
+  } catch (err) {
+    stopTranslateMic();
+  }
 }
 
 function stopTranslateMic() {
@@ -2374,6 +2382,8 @@ function togglePracticeMic() {
 function startPracticeMic() {
   const target = document.getElementById('pTarget').textContent;
   if (!target || target === '—') return;
+  if (listening) stopListen();
+  if (tListening) stopTranslateMic();
   pRec = new SR();
   pRec.continuous = false;
   pRec.interimResults = true;
@@ -2401,8 +2411,17 @@ function startPracticeMic() {
     if (heard) checkPracticeResult(heard, target);
   };
   pRec.onend = () => { stopPracticeMic(); };
-  pRec.onerror = () => { stopPracticeMic(); };
-  pRec.start();
+  pRec.onerror = (e) => {
+    const msgs = { 'not-allowed': 'Mic denied — check browser settings', 'no-speech': 'No speech heard — try again', 'network': 'Network error', 'aborted': 'Mic busy — try again' };
+    document.getElementById('pMicLabel').textContent = msgs[e.error] || 'Mic error — tap to retry';
+    stopPracticeMic();
+  };
+  try {
+    pRec.start();
+  } catch (err) {
+    document.getElementById('pMicLabel').textContent = 'Mic busy — try again in a moment';
+    stopPracticeMic();
+  }
 }
 
 function stopPracticeMic() {
