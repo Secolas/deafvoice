@@ -1064,16 +1064,6 @@
     </div>
   </div>
 
-  <div class="section-hd">Add to dictionary</div>
-  <div class="card tight">
-    <div class="dict-row">
-      <input class="dict-input" id="dictFrom" placeholder="engine hears..." onfocus="prefillDictFromLatest(true)" onkeydown="if(event.key==='Enter')document.getElementById('dictTo').focus()"/>
-      <span class="dict-arrow">→</span>
-      <input class="dict-input" id="dictTo" placeholder="you mean..." onkeydown="if(event.key==='Enter')addDictEntry()"/>
-      <button class="save-btn" onclick="addDictEntry()">Add</button>
-    </div>
-  </div>
-
   <div class="section-hd" id="tVocabHd">Learned vocabulary — 0 patterns</div>
   <div class="entries" id="tVocabList"></div>
 
@@ -1622,7 +1612,6 @@ async function addEntry(text, conf) {
   if (entries.length > 500) entries.pop();
   saveLocal();
   renderAll();
-  prefillDictFromLatest();
   try {
     const ref = await addDoc(entriesCol, {
       heard: entry.heard,
@@ -2217,31 +2206,6 @@ function applySuggestion(id) {
       console.warn('[firebase] applySuggestion failed', err));
   }
   if (suggestion !== e.heard) learnPattern(e.heard, suggestion);
-}
-
-// ---- Personal dictionary ----
-function prefillDictFromLatest(focusNext) {
-  const fromEl = document.getElementById('dictFrom');
-  if (!fromEl || fromEl.value) return;
-  const latest = entries[0];
-  if (!latest) return;
-  fromEl.value = latest.heard;
-  if (focusNext) {
-    const toEl = document.getElementById('dictTo');
-    setTimeout(() => toEl.focus(), 0);
-  }
-}
-
-function addDictEntry() {
-  const fromEl = document.getElementById('dictFrom');
-  const toEl = document.getElementById('dictTo');
-  const from = (fromEl.value || '').trim();
-  const to = (toEl.value || '').trim();
-  if (!from || !to) return;
-  learnPattern(from, to);
-  fromEl.value = '';
-  toEl.value = '';
-  renderVocabList();
 }
 
 // ---- Copy translation ----
