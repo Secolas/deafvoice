@@ -590,6 +590,35 @@
     border-radius: 999px; margin: 0 0 10px 8px;
   }
   .daily-badge strong { font-weight: 800; }
+  .bingo-levels {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin: 4px 0 8px;
+  }
+  .bingo-level-pill {
+    flex: 1 1 auto; min-width: 70px;
+    padding: 7px 10px; font-size: 11px; font-weight: 800;
+    letter-spacing: 0.3px; text-transform: uppercase;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--bg-subtle); color: var(--text3);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    font-family: var(--font-body);
+  }
+  .bingo-level-pill.active {
+    background: var(--accent); color: var(--accent-dark);
+    border-color: var(--accent);
+  }
+  .bingo-level-pill.locked {
+    opacity: 0.45; cursor: not-allowed;
+  }
+  .bingo-level-pill.done:not(.active) {
+    color: var(--green); border-color: var(--green);
+  }
+  .bingo-level-desc {
+    font-size: 12px; color: var(--text3);
+    margin: 0 4px 4px; text-align: center;
+    font-style: italic;
+  }
   .bingo-grid {
     display: grid; grid-template-columns: repeat(5, 1fr);
     gap: 4px; margin: 12px 0 10px;
@@ -700,15 +729,6 @@
     font-family: var(--font-body);
   }
   .practice-hear:active { background: var(--bg3); transform: scale(0.97); }
-
-  .practice-tip {
-    position: relative;
-    font-size: 13px; color: var(--text3);
-    margin-top: 12px; line-height: 1.5;
-    min-height: 20px;
-    padding: 0 6px;
-  }
-  .practice-tip strong { color: var(--accent); font-weight: 700; }
 
   .practice-mic-label {
     font-size: 12px; font-weight: 800; letter-spacing: 0.4px;
@@ -1044,50 +1064,7 @@
   }
   .no-support strong { color: var(--text); font-weight: 700; }
 
-  /* MOCHI — Shiba mascot */
-  .shiba {
-    position: absolute; pointer-events: none;
-    z-index: 2; line-height: 0;
-  }
-  .shiba.hero { top: 6px; right: 10px; }
-  .shiba svg { display: block; overflow: visible; }
-
   /* PROFILE CARD (Settings) */
-  .profile-card {
-    position: relative;
-    background: var(--gradient-hero);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    box-shadow: var(--shadow-indigo);
-    display: flex; align-items: center; gap: 16px;
-    margin-bottom: 18px;
-    overflow: hidden;
-  }
-  .profile-avatar { width: 72px; height: 72px; flex-shrink: 0; line-height: 0; }
-  .profile-info { flex: 1; color: #fff; min-width: 0; }
-  .profile-name {
-    font-family: var(--font-display);
-    font-size: 22px; font-weight: 600; letter-spacing: -0.3px;
-    color: #fff;
-  }
-  .profile-level {
-    font-size: 11px; font-weight: 800; letter-spacing: 0.4px;
-    text-transform: uppercase; color: rgba(241,245,249,0.8);
-    margin-top: 2px;
-  }
-  .profile-xp-track {
-    height: 5px; background: rgba(255,255,255,0.2);
-    border-radius: 999px; margin-top: 10px; overflow: hidden;
-  }
-  .profile-xp-fill {
-    height: 100%; background: #fff;
-    border-radius: 999px; transition: width 0.4s;
-  }
-  .profile-xp-label {
-    font-size: 11px; font-weight: 700;
-    color: rgba(241,245,249,0.75); margin-top: 4px;
-  }
-
   /* UTILITIES */
   [hidden] { display: none !important; }
 </style>
@@ -1132,7 +1109,7 @@
 
     <div class="mic-section">
       <div class="mic-wrap">
-        <div class="mic-btn" id="micBtn" onclick="toggleListen()">
+        <div class="mic-btn" id="micBtn" role="button" tabindex="0" aria-label="Start recording" aria-pressed="false" onclick="toggleListen()">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="2" width="6" height="12" rx="3"/>
             <path d="M5 10a7 7 0 0 0 14 0"/>
@@ -1168,7 +1145,7 @@
 <!-- ============ TRANSLATE ============ -->
 <section id="translateView" class="view" hidden>
   <h1 class="page-title">Translate</h1>
-  <p class="page-sub">Speak or type — we apply your learned corrections.</p>
+  <p class="page-sub">Speak or type — your past corrections apply automatically.</p>
 
   <div class="input-card">
     <div class="input-label">Your message</div>
@@ -1177,7 +1154,7 @@
 
   <div class="mic-section">
     <div class="mic-wrap">
-      <div class="mic-btn" id="tMicBtn" onclick="toggleTranslateMic()">
+      <div class="mic-btn" id="tMicBtn" role="button" tabindex="0" aria-label="Speak to translate" aria-pressed="false" onclick="toggleTranslateMic()">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="2" width="6" height="12" rx="3"/>
           <path d="M5 10a7 7 0 0 0 14 0"/>
@@ -1218,8 +1195,6 @@
     </div>
   </div>
 
-  <div class="section-hd" id="tVocabHd">Learned vocabulary — 0 patterns</div>
-  <div class="entries" id="tVocabList"></div>
 
 </section>
 
@@ -1248,17 +1223,18 @@
     <div class="daily-badge" id="dailyBadge" style="display:none">🔥 <span>Daily streak: <strong id="dailyStreakVal">0</strong></span></div>
     <div class="practice-target" id="pTarget">—</div>
     <div class="phonetic" id="pPhonetic"></div>
+    <div class="bingo-levels" id="bingoLevels" style="display:none"></div>
+    <div class="bingo-level-desc" id="bingoLevelDesc" style="display:none"></div>
     <div class="bingo-grid" id="bingoGrid" style="display:none"></div>
     <div id="bingoStatus" class="bingo-status" style="display:none"></div>
     <button class="practice-hear" onclick="hearTarget()">🔊 Hear it</button>
     <button class="practice-nav-btn" id="bingoNewBtn" style="display:none; margin-top:10px;" onclick="newBingoBoard()">🎲 New board</button>
-    <div class="practice-tip" id="pTip"></div>
   </div>
 
   <div class="practice-mic-label" id="pMicLabel">tap to try saying it</div>
   <div class="mic-section" style="margin-top:4px; margin-bottom:14px;">
     <div class="mic-wrap">
-      <div class="mic-btn" id="pMicBtn" onclick="togglePracticeMic()">
+      <div class="mic-btn" id="pMicBtn" role="button" tabindex="0" aria-label="Speak the target word" aria-pressed="false" onclick="togglePracticeMic()">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
           <line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
@@ -1300,7 +1276,6 @@
   <p class="page-sub">How your voice is becoming clearer over time.</p>
 
   <div class="hero-card">
-    <div class="shiba hero" id="shibaHero"></div>
     <div class="hero-label">Accuracy · overall</div>
     <div class="hero-num" id="progAccuracy">—</div>
     <div class="hero-trend" id="progTrend">Keep speaking to build your profile</div>
@@ -1342,16 +1317,6 @@
   <h1 class="page-title">You</h1>
   <p class="page-sub">Preferences, data, and training.</p>
 
-  <div class="profile-card">
-    <div class="profile-avatar" id="shibaProfile"></div>
-    <div class="profile-info">
-      <div class="profile-name">Mochi</div>
-      <div class="profile-level" id="profileLevel">Level 1</div>
-      <div class="profile-xp-track"><div class="profile-xp-fill" id="profileXpFill" style="width:0%"></div></div>
-      <div class="profile-xp-label" id="profileXpLabel">0 patterns learned</div>
-    </div>
-  </div>
-
   <div class="settings-group">
     <div class="settings-group-hd">Recognition</div>
     <div class="settings-card">
@@ -1359,10 +1324,6 @@
         <div class="setting-label">Language</div>
         <div class="setting-value" id="setLangValue">English (US)</div>
         <div class="setting-chev">›</div>
-      </div>
-      <div class="setting-row" onclick="toggleAutoApply()">
-        <div class="setting-label">Auto-apply learned corrections</div>
-        <div class="toggle on" id="autoApplyToggle"></div>
       </div>
     </div>
   </div>
@@ -1373,14 +1334,6 @@
       <div class="setting-row" onclick="openLearnedModal()">
         <div class="setting-label">Learned corrections</div>
         <div class="setting-value" id="setLearnedValue">0</div>
-        <div class="setting-chev">›</div>
-      </div>
-      <div class="setting-row" onclick="exportJSON()">
-        <div class="setting-label">Export as JSON</div>
-        <div class="setting-chev">›</div>
-      </div>
-      <div class="setting-row" onclick="exportCSV()">
-        <div class="setting-label">Export as CSV</div>
         <div class="setting-chev">›</div>
       </div>
     </div>
@@ -1507,123 +1460,14 @@ let rec, listening = false, waveTimer;
 let entries = loadLocal();
 let learnedMap = loadLearnedLocal();
 let currentLang = 'en-US';
-let autoApply = (localStorage.getItem('cv_autoapply') !== 'false');
+const autoApply = true;
 const wbEls = document.querySelectorAll('#wave .wb');
 const baseH = [6,11,18,8,22,13,7,16,10];
 
-// ---- Mochi (Shiba mascot) ----
-// Level math: 1 + floor(learned / 3), clamped at 12.
-// Bandana unlocks at level 5 (12+ learned), crown at level 10 (27+ learned).
-function mochiLevel() {
-  const n = Object.keys(learnedMap).length;
-  return Math.min(12, 1 + Math.floor(n / 3));
-}
-function mochiXpInLevel() {
-  const n = Object.keys(learnedMap).length;
-  const lvl = mochiLevel();
-  if (lvl >= 12) return { cur: 3, of: 3, pct: 100 };
-  const base = (lvl - 1) * 3;
-  return { cur: n - base, of: 3, pct: Math.round(((n - base) / 3) * 100) };
-}
-
-function makeShiba({ action = 'idle', size = 88, level = 1, furColor = '#E8A358' } = {}) {
-  const isBark = action === 'bark';
-  const isSad = action === 'sad';
-  const isFocus = action === 'focus';
-  const isDig = action === 'dig';
-  const isPerk = action === 'perk';
-  const hasBandana = level >= 5;
-  const hasCrown = level >= 10;
-  const outline = '#D18A3F';
-  const tr = '.3s cubic-bezier(.34,1.56,.64,1)';
-
-  const leftPawT =
-    isDig    ? 'translate(0,15px)' :
-    isSad    ? 'translate(0,40px)' :
-    isFocus  ? 'translate(5px,25px)' :
-    (isBark || isPerk) ? 'translate(0,-15px)' :
-                         'translate(0,10px)';
-  const rightPawT =
-    isDig    ? 'translate(0,5px)' :
-    isSad    ? 'translate(0,40px)' :
-    isFocus  ? 'translate(-5px,20px)' :
-    (isBark || isPerk) ? 'translate(0,-15px)' :
-                         'translate(0,10px)';
-  const earLeftT = isPerk ? 'translateY(-5px) rotate(-10deg)' : isSad ? 'translateY(5px) rotate(10deg)' : '';
-  const earRightT = isPerk ? 'translateY(-5px) rotate(10deg)' : isSad ? 'translateY(5px) rotate(-10deg)' : '';
-  const eyeR = isPerk ? 6 : 5;
-
-  const digDirt = isDig ? `
-    <circle cx="20" cy="110" r="2" fill="#8D6E63"><animate attributeName="opacity" values="1;.2;1" dur=".5s" repeatCount="indefinite"/></circle>
-    <circle cx="100" cy="115" r="3" fill="#8D6E63"><animate attributeName="opacity" values="1;.2;1" dur=".6s" repeatCount="indefinite"/></circle>
-    <circle cx="10" cy="100" r="2" fill="#8D6E63"><animate attributeName="opacity" values="1;.2;1" dur=".4s" repeatCount="indefinite"/></circle>` : '';
-  const focusBook = isFocus ? `
-    <g transform="rotate(-5 60 120)">
-      <rect x="25" y="110" width="70" height="20" fill="#FFF" stroke="#CCC" stroke-width="1" rx="1"/>
-      <line x1="30" y1="118" x2="80" y2="118" stroke="#EEE" stroke-width="1"/>
-    </g>` : '';
-  const mouth = isSad
-    ? `<path d="M50 92 Q60 88 70 92" fill="none" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>`
-    : isFocus
-    ? `<path d="M55 90 H65" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>`
-    : `<path d="M60 82 L60 92 M60 92 Q52 98 48 88 M60 92 Q68 98 72 88" fill="none" stroke="#3E2723" stroke-width="2" stroke-linecap="round"/>`;
-  const tear = isSad ? `<path d="M40 70 Q40 80 35 80 Q30 80 30 70 L35 60 Z" fill="#4FC3F7" stroke="#039BE5" stroke-width=".5"/>` : '';
-  const bandana = hasBandana ? `<path d="M30 95 Q60 120 90 95 L80 90 Q60 105 40 90 Z" fill="#EF4444" stroke="#B91C1C" stroke-width="2" stroke-linejoin="round"/>` : '';
-  const crown = hasCrown ? `<path d="M40 30 L40 10 L50 20 L60 5 L70 20 L80 10 L80 30 Z" fill="#FBBF24" stroke="#D97706" stroke-width="2" stroke-linejoin="round"/>` : '';
-
-  return `<svg viewBox="0 0 120 130" width="${size}" height="${size}" style="overflow:visible; filter:drop-shadow(0 4px 6px rgba(0,0,0,.18));">
-    ${digDirt}
-    ${focusBook}
-    <path d="M28 52 L18 22 Q38 28 50 42 Z" fill="${furColor}" stroke="${outline}" stroke-width="2" stroke-linejoin="round" style="transform:${earLeftT};transform-origin:28px 52px;transition:transform ${tr}"/>
-    <path d="M92 52 L102 22 Q82 28 70 42 Z" fill="${furColor}" stroke="${outline}" stroke-width="2" stroke-linejoin="round" style="transform:${earRightT};transform-origin:92px 52px;transition:transform ${tr}"/>
-    <circle cx="60" cy="70" r="45" fill="${furColor}" stroke="${outline}" stroke-width="2"/>
-    <path d="M60 70 Q25 70 20 85 Q15 100 60 112 Q105 100 100 85 Q95 70 60 70" fill="#FFFDF5"/>
-    ${bandana}
-    <ellipse cx="40" cy="55" rx="4" ry="2" fill="#FFFDF5" opacity=".8"/>
-    <ellipse cx="80" cy="55" rx="4" ry="2" fill="#FFFDF5" opacity=".8"/>
-    <circle cx="42" cy="65" r="${eyeR}" fill="#3E2723"/>
-    <circle cx="44" cy="63" r="2" fill="white"/>
-    <circle cx="78" cy="65" r="${eyeR}" fill="#3E2723"/>
-    <circle cx="80" cy="63" r="2" fill="white"/>
-    <ellipse cx="60" cy="82" rx="7" ry="5" fill="#3E2723"/>
-    ${mouth}
-    <circle cx="28" cy="85" r="5" fill="#FFAB91" opacity=".5"/>
-    <circle cx="92" cy="85" r="5" fill="#FFAB91" opacity=".5"/>
-    ${tear}
-    ${crown}
-    <g style="transform:${leftPawT};transition:transform ${tr}">
-      <circle cx="30" cy="110" r="14" fill="#FFFDF5" stroke="${outline}" stroke-width="2"/>
-      <path d="M24 108 L24 116 M30 106 L30 116 M36 108 L36 116" stroke="${outline}" stroke-width="2" stroke-linecap="round"/>
-    </g>
-    <g style="transform:${rightPawT};transition:transform ${tr}">
-      <circle cx="90" cy="110" r="14" fill="#FFFDF5" stroke="${outline}" stroke-width="2"/>
-      <path d="M84 108 L84 116 M90 106 L90 116 M96 108 L96 116" stroke="${outline}" stroke-width="2" stroke-linecap="round"/>
-    </g>
-  </svg>`;
-}
-
-function renderMochi() {
-  const lvl = mochiLevel();
-  const heroEl = document.getElementById('shibaHero');
-  if (heroEl) heroEl.innerHTML = makeShiba({ action: 'bark', size: 88, level: lvl });
-  const practiceEl = document.getElementById('shibaPractice');
-  if (practiceEl) practiceEl.innerHTML = makeShiba({ action: 'focus', size: 80, level: lvl });
-  const profileEl = document.getElementById('shibaProfile');
-  if (profileEl) profileEl.innerHTML = makeShiba({ action: 'idle', size: 72, level: lvl });
-  const lvlEl = document.getElementById('profileLevel');
-  if (lvlEl) lvlEl.textContent = 'Level ' + lvl + (lvl >= 10 ? ' · crowned' : lvl >= 5 ? ' · bandana' : '');
-  const xp = mochiXpInLevel();
-  const fill = document.getElementById('profileXpFill');
-  if (fill) fill.style.width = xp.pct + '%';
-  const xpLabel = document.getElementById('profileXpLabel');
-  if (xpLabel) xpLabel.textContent = Object.keys(learnedMap).length + ' patterns learned';
-}
 
 renderAll();
 loadFromCloud();
 loadLearnedFromCloud();
-updateAutoApplyUI();
-renderMochi();
 
 function animWave() {
   waveTimer = setInterval(() => {
@@ -1640,6 +1484,10 @@ function toggleListen() {
   listening ? stopListen() : startListen();
 }
 
+function haptic(ms) {
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+}
+
 function startListen() {
   if (tListening) stopTranslateMic();
   if (pListening) stopPracticeMic();
@@ -1650,11 +1498,15 @@ function startListen() {
   let finalIndex = 0;
   rec.onstart = () => {
     listening = true;
-    document.getElementById('micBtn').classList.add('on');
+    const btn = document.getElementById('micBtn');
+    btn.classList.add('on');
+    btn.setAttribute('aria-pressed', 'true');
+    btn.setAttribute('aria-label', 'Stop recording');
     document.getElementById('wave').classList.add('live');
     document.getElementById('statusTxt').textContent = 'live';
     document.getElementById('statusPill').classList.add('on');
     animWave();
+    haptic(40);
   };
   rec.onresult = (e) => {
     let interim = '';
@@ -1695,12 +1547,16 @@ function startListen() {
 function stopListen() {
   if (rec) { rec.onend = null; rec.stop(); }
   listening = false;
-  document.getElementById('micBtn').classList.remove('on');
+  const btn = document.getElementById('micBtn');
+  btn.classList.remove('on');
+  btn.setAttribute('aria-pressed', 'false');
+  btn.setAttribute('aria-label', 'Start recording');
   document.getElementById('wave').classList.remove('live');
   document.getElementById('statusTxt').textContent = 'idle';
   document.getElementById('statusPill').classList.remove('on');
   stopWave();
   flushPending();
+  haptic(20);
 }
 
 // ---- Phrase buffering ----
@@ -1849,7 +1705,6 @@ function renderAll() {
   renderEntries();
   renderProgress();
   updateSettingsValues();
-  renderMochi();
 }
 
 function renderEntries() {
@@ -1919,16 +1774,6 @@ function updateSettingsValues() {
   }
 }
 
-function updateAutoApplyUI() {
-  const t = document.getElementById('autoApplyToggle');
-  if (t) t.classList.toggle('on', autoApply);
-}
-function toggleAutoApply() {
-  autoApply = !autoApply;
-  localStorage.setItem('cv_autoapply', String(autoApply));
-  updateAutoApplyUI();
-}
-
 // ---- Progress view ----
 function renderProgress() {
   // Accuracy
@@ -1994,24 +1839,6 @@ function accForSlice(arr) {
   if (!arr.length) return null;
   const c = arr.filter(e => e.corrected && e.corrected !== e.heard).length;
   return Math.round(((arr.length - c) / arr.length) * 100);
-}
-
-function exportJSON() {
-  const data = entries.map(e => ({ heard: e.heard, corrected: e.corrected || e.heard, was_corrected: !!e.corrected, confidence: e.conf, lang: e.lang, timestamp: e.ts }));
-  download('deafvoice_training_data.json', JSON.stringify(data, null, 2), 'application/json');
-}
-
-function exportCSV() {
-  const rows = [['heard_by_engine','actual_text','was_corrected','confidence','lang','timestamp']];
-  entries.forEach(e => rows.push(['"'+e.heard.replace(/"/g,'""')+'"', '"'+(e.corrected||e.heard).replace(/"/g,'""')+'"', e.corrected?'true':'false', e.conf, e.lang, e.ts]));
-  download('deafvoice_training_data.csv', rows.map(r=>r.join(',')).join('\n'), 'text/csv');
-}
-
-function download(filename, content, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], {type}));
-  a.download = filename;
-  a.click();
 }
 
 async function clearAll() {
@@ -2223,7 +2050,7 @@ function switchTab(tab) {
     const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
     if (btn) btn.classList.toggle('active', t === tab);
   });
-  if (tab === 'translate') renderVocabList();
+  if (tab === 'translate') {/* nothing extra */}
   if (tab === 'practice') { applyPracticeMode('practice'); initPractice(); }
   if (tab === 'games') { applyPracticeMode('games'); initPractice(); }
   if (tab === 'progress') renderProgress();
@@ -2303,10 +2130,12 @@ function startTranslateMic() {
   tRec.onstart = () => {
     tListening = true;
     btn.classList.add('on');
+    btn.setAttribute('aria-pressed', 'true');
     tWaveEl.classList.add('live');
     tWaveTimer = setInterval(() => {
       tWaveBars.forEach((b,i) => { b.style.height = Math.round(baseH[i] + Math.random()*14) + 'px'; });
     }, 100);
+    haptic(40);
   };
   tRec.onresult = (e) => {
     let finalText = '';
@@ -2334,29 +2163,13 @@ function stopTranslateMic() {
   clearInterval(tWaveTimer);
   const btn = document.getElementById('tMicBtn');
   btn.classList.remove('on');
+  btn.setAttribute('aria-pressed', 'false');
   const tWaveEl = document.getElementById('tWave');
   if (tWaveEl) {
     tWaveEl.classList.remove('live');
     tWaveEl.querySelectorAll('.wb').forEach((b,i) => b.style.height = baseH[i] + 'px');
   }
-}
-
-function renderVocabList() {
-  const keys = Object.keys(learnedMap).sort((a,b) => (learnedMap[b].count||0) - (learnedMap[a].count||0));
-  document.getElementById('tVocabHd').textContent = `Learned vocabulary — ${keys.length} pattern${keys.length !== 1 ? 's' : ''}`;
-  const list = document.getElementById('tVocabList');
-  if (!keys.length) {
-    list.innerHTML = '<div class="card tight" style="color:var(--text3); font-size:13px; text-align:center;">No patterns yet. Go to Record, speak, and correct phrases to teach the app.</div>';
-    return;
-  }
-  list.innerHTML = keys.map(k => {
-    const m = learnedMap[k];
-    return `<div class="entry" style="padding:12px 14px;">
-      <div style="font-family:var(--font-mono); font-size:12px; color:var(--text3); text-decoration:line-through;">${esc(m.from || k)}</div>
-      <div style="font-size:15px; color:var(--purple-soft); font-weight:700; margin-top:4px;">→ ${esc(m.to)}</div>
-      <div style="font-size:11px; color:var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:0.3px; font-weight:800;">used ${m.count || 1}×</div>
-    </div>`;
-  }).join('');
+  haptic(20);
 }
 
 // ---- Suggestion engine ----
@@ -2424,7 +2237,7 @@ let practiceList = [];
 let practiceIndex = 0;
 let practiceStreak = 0;
 let practiceProgress = loadPracticeProgress();
-let pRec, pListening = false, pWaveTimer;
+let pRec, pListening = false, pWaveTimer, practiceRetried = false;
 
 const defaultWords = [
   'three','think','this','that','the','voice','very','water','what','where',
@@ -2559,7 +2372,31 @@ function masterDailyIfNeeded() {
   saveDailyState();
 }
 
-// ---- Bingo ----
+// ---- Bingo (with levels) ----
+const bingoLevels = [
+  { id: 1, name: 'Starter', desc: 'Short common words',
+    words: ['yes','no','the','go','see','name','help','good','this','that',
+            'want','need','here','there','what','when','who','do','is','my',
+            'you','me','it','we','can','now','okay','please','thanks','say',
+            'eat','sit','run','make','give'] },
+  { id: 2, name: 'Sounds', desc: 'th, l, r, sh, w trouble sounds',
+    words: ['three','think','this','that','very','voice','light','right','read','lead',
+            'ship','share','sheep','wine','vest','people','before','different','remember','weather',
+            'breathe','because','everything','place','sorry','where','when','with','would','better'] },
+  { id: 3, name: 'Pairs', desc: 'Confusable minimal pairs',
+    words: ['three','tree','free','this','dis','vest','best','very','berry',
+            'light','right','long','wrong','lead','read','ship','chip','share','chair',
+            'sheep','cheap','wine','vine','west','bat','pat','big','pig','fan','pan',
+            'fat','save','safe','sheet','seat','pen'] },
+  { id: 4, name: 'Phrases', desc: 'Two-word combinations',
+    words: ['thank you','my name','i want','you are','go now','wait here','help me','see you',
+            'very nice','good day','right here','this place','no thanks','please go','very good',
+            'come here','what time','where is','i need','very well','see this','let me','one more',
+            'sit down','stand up'] }
+];
+
+let bingoLevel = 1;
+let bingoCompleted = []; // array of completed level ids
 let bingoBoard = [];
 let bingoMarks = [];
 let bingoSelected = null;
@@ -2568,6 +2405,7 @@ let bingoWon = false;
 function saveBingoState() {
   try {
     localStorage.setItem('cv_bingo', JSON.stringify({
+      level: bingoLevel, completed: bingoCompleted,
       board: bingoBoard, marks: bingoMarks, selected: bingoSelected, won: bingoWon
     }));
   } catch (e) {}
@@ -2577,6 +2415,8 @@ function loadBingoState() {
     const raw = localStorage.getItem('cv_bingo');
     if (!raw) return false;
     const s = JSON.parse(raw);
+    if (typeof s.level === 'number') bingoLevel = s.level;
+    if (Array.isArray(s.completed)) bingoCompleted = s.completed;
     if (!Array.isArray(s.board) || s.board.length !== 25) return false;
     bingoBoard = s.board;
     bingoMarks = Array.isArray(s.marks) && s.marks.length === 25 ? s.marks : new Array(25).fill(false);
@@ -2586,11 +2426,46 @@ function loadBingoState() {
   } catch (e) { return false; }
 }
 
+function isBingoLevelUnlocked(id) {
+  if (id === 1) return true;
+  return bingoCompleted.includes(id - 1);
+}
+
+function setBingoLevel(id) {
+  if (!isBingoLevelUnlocked(id)) return;
+  bingoLevel = id;
+  newBingoBoard();
+  renderBingoLevels();
+}
+
+function renderBingoLevels() {
+  const wrap = document.getElementById('bingoLevels');
+  if (!wrap) return;
+  wrap.innerHTML = bingoLevels.map(l => {
+    const unlocked = isBingoLevelUnlocked(l.id);
+    const done = bingoCompleted.includes(l.id);
+    const active = bingoLevel === l.id;
+    const cls = ['bingo-level-pill'];
+    if (active) cls.push('active');
+    if (!unlocked) cls.push('locked');
+    if (done) cls.push('done');
+    const click = unlocked ? `onclick="setBingoLevel(${l.id})"` : '';
+    const icon = !unlocked ? '🔒 ' : done ? '✓ ' : '';
+    return `<button class="${cls.join(' ')}" ${click} ${unlocked ? '' : 'disabled'}>${icon}${l.id}. ${esc(l.name)}</button>`;
+  }).join('');
+  const desc = document.getElementById('bingoLevelDesc');
+  if (desc) {
+    const cur = bingoLevels.find(l => l.id === bingoLevel);
+    desc.textContent = cur ? cur.desc : '';
+  }
+}
+
 function newBingoBoard() {
-  const pool = [...defaultWords, ...dailyPool];
-  const uniq = [...new Set(pool)];
-  const shuffled = uniq.sort(() => Math.random() - 0.5);
+  const cur = bingoLevels.find(l => l.id === bingoLevel) || bingoLevels[0];
+  const pool = [...new Set(cur.words)];
+  const shuffled = pool.sort(() => Math.random() - 0.5);
   bingoBoard = shuffled.slice(0, 25);
+  while (bingoBoard.length < 25) bingoBoard.push(shuffled[bingoBoard.length % shuffled.length]);
   bingoMarks = new Array(25).fill(false);
   bingoSelected = null;
   bingoWon = false;
@@ -2638,11 +2513,15 @@ function checkBingoResult(heard) {
     saveBingoState();
     renderBingoBoard();
     if (wonRow) {
+      if (!bingoCompleted.includes(bingoLevel)) bingoCompleted.push(bingoLevel);
+      saveBingoState();
+      renderBingoLevels();
       const statusEl = document.getElementById('bingoStatus');
-      statusEl.textContent = '🎉 BINGO! 🎉';
+      const next = bingoLevels.find(l => l.id === bingoLevel + 1);
+      statusEl.textContent = next ? `🎉 BINGO! Level ${bingoLevel} complete — Level ${next.id}: ${next.name} unlocked!` : '🎉 BINGO! All levels complete!';
       statusEl.className = 'bingo-status win';
       statusEl.style.display = '';
-      document.getElementById('pMicLabel').textContent = 'Tap "New board" to play again';
+      document.getElementById('pMicLabel').textContent = next ? 'Pick the next level above or tap "New board"' : 'Tap "New board" to play again';
       const hearBtn = document.querySelector('.practice-card .practice-hear');
       if (hearBtn) hearBtn.style.display = 'none';
     } else {
@@ -2734,6 +2613,8 @@ function showPracticeItem() {
   bingoGrid.style.display = 'none';
   bingoStatus.style.display = 'none';
   bingoNewBtn.style.display = 'none';
+  document.getElementById('bingoLevels').style.display = 'none';
+  document.getElementById('bingoLevelDesc').style.display = 'none';
   targetEl.style.display = '';
   if (hearBtn) hearBtn.style.display = '';
   currentPair = null;
@@ -2751,7 +2632,6 @@ function showPracticeItem() {
     } else {
       document.getElementById('pMicLabel').textContent = 'tap mic and say "' + word + '"';
     }
-    showPronunciationTip(word);
     updatePracticeStats();
     return;
   }
@@ -2760,15 +2640,17 @@ function showPracticeItem() {
     targetEl.style.display = 'none';
     bingoGrid.style.display = '';
     bingoNewBtn.style.display = '';
+    document.getElementById('bingoLevels').style.display = '';
+    document.getElementById('bingoLevelDesc').style.display = '';
     if (!bingoBoard.length && !loadBingoState()) newBingoBoard();
     else renderBingoBoard();
+    renderBingoLevels();
     if (bingoWon) {
       bingoStatus.textContent = '🎉 BINGO! 🎉';
       bingoStatus.className = 'bingo-status win';
       bingoStatus.style.display = '';
     }
-    document.getElementById('pTip').textContent = '';
-    document.getElementById('pMicLabel').textContent = bingoWon ? 'Tap "New board" to play again'
+    document.getElementById('pMicLabel').textContent = bingoWon ? 'Tap "New board" or pick the next level'
       : bingoSelected === null ? 'Tap a word to pick it'
       : 'tap mic and say "' + bingoBoard[bingoSelected] + '"';
     if (hearBtn) hearBtn.style.display = bingoSelected !== null && !bingoWon ? '' : 'none';
@@ -2778,7 +2660,6 @@ function showPracticeItem() {
 
   if (!practiceList.length) {
     targetEl.textContent = 'No words to practice yet. Go to Record and speak!';
-    document.getElementById('pTip').textContent = '';
     return;
   }
   const item = practiceList[practiceIndex % practiceList.length];
@@ -2801,57 +2682,7 @@ function showPracticeItem() {
     phEl.textContent = getPhonetic(item);
   }
   document.getElementById('pMicLabel').textContent = practiceLevel === 'pairs' ? 'tap mic and say the left word' : 'tap to try saying it';
-  showPronunciationTip(item);
   updatePracticeStats();
-}
-
-function showPronunciationTip(word) {
-  const tips = {
-    'three': 'Place tongue between teeth, blow air gently: "th-ree" (not "free")',
-    'think': 'Tongue between teeth for "th", then "ink". Feel the vibration.',
-    'this': 'Tongue between teeth, voice it: "th" vibrates, unlike "th" in "three"',
-    'that': 'Same voiced "th" as "this" — tongue between teeth with vibration',
-    'the': 'Quick voiced "th" — tongue tip touches between upper and lower teeth',
-    'voice': 'Bite lower lip lightly for "v", not "b". "V" vibrates with air flow.',
-    'very': 'Lower lip under top teeth for "v", then "air-ee"',
-    'water': 'Start with rounded lips for "w", then "ah-ter"',
-    'what': 'Round lips for "w", open for "ah", finish with "t"',
-    'where': 'Round lips, blow slightly for "wh", then "air"',
-    'when': 'Round lips for "w", open mouth for "en"',
-    'with': 'Round lips for "w", short "ih", tongue between teeth for "th"',
-    'would': 'Round lips for "w", then "ood" (rhymes with "good")',
-    'people': 'Close both lips for "p", open for "ee", close for "p" again, then "ul"',
-    'please': 'Lips together for "p", tongue up for "l", then "eez"',
-    'something': 'Start with "s" (teeth together, hiss), then "uhm-thing"',
-    'everything': '"Ev-ree-thing" — 3 beats. Bite lip for "v", tongue between teeth for "th"',
-    'nothing': '"Nuh-thing" — tongue touches roof for "n", tongue between teeth for "th"',
-    'because': '"Bih-kuz" — lips together for "b", back of tongue up for "k"',
-    'hello': '"Heh-low" — breathe out for "h", tongue stays low',
-    'thank you': '"Th-ank yoo" — tongue between teeth, then "ank" with back of tongue',
-    'excuse me': '"Ek-skyooz mee" — start with "ek", then "s" blends into "kyooz"',
-    'sorry': '"Saw-ree" — teeth together for "s" (hiss, not "sh")',
-  };
-  const tipEl = document.getElementById('pTip');
-  const lower = word.toLowerCase();
-  if (tips[lower]) {
-    tipEl.innerHTML = '💡 <strong>Tip:</strong> ' + esc(tips[lower]);
-    return;
-  }
-  const genericTips = [];
-  if (/th/i.test(word)) genericTips.push('For "th" — place tongue tip between your teeth');
-  if (/\bv/i.test(word)) genericTips.push('For "v" — bite lower lip gently (not "b")');
-  if (/\bw/i.test(word)) genericTips.push('For "w" — round your lips into a small circle');
-  if (/\bf/i.test(word)) genericTips.push('For "f" — top teeth on lower lip, blow air');
-  if (/\bp/i.test(word)) genericTips.push('For "p" — press lips together, then pop air out');
-  if (/\br/i.test(word)) genericTips.push('For "r" — curl tongue back, don\'t touch the roof');
-  if (/\bl/i.test(word)) genericTips.push('For "l" — tongue tip touches the ridge behind upper teeth');
-  if (/\bs[^h]/i.test(word) || /^s/i.test(word)) genericTips.push('For "s" — teeth close together, hiss air through');
-  if (/sh/i.test(word)) genericTips.push('For "sh" — lips forward, tongue pulled back');
-  if (genericTips.length) {
-    tipEl.innerHTML = '💡 ' + genericTips.slice(0, 2).map(t => esc(t)).join('. ');
-  } else {
-    tipEl.textContent = '💡 Listen first, then try to match the sounds.';
-  }
 }
 
 function hearTarget() {
@@ -2869,7 +2700,9 @@ function hearTarget() {
 
 function togglePracticeMic() {
   if (!SR) return;
-  pListening ? stopPracticeMic() : startPracticeMic();
+  if (pListening) { stopPracticeMic(); return; }
+  practiceRetried = false;
+  startPracticeMic();
 }
 
 function startPracticeMic() {
@@ -2900,12 +2733,14 @@ function startPracticeMic() {
   pRec.onstart = () => {
     pListening = true;
     btn.classList.add('on');
+    btn.setAttribute('aria-pressed', 'true');
     pWaveEl.classList.add('live');
     pWaveTimer = setInterval(() => {
       pWaveBars.forEach((b,i) => { b.style.height = Math.round(baseH[i] + Math.random()*14) + 'px'; });
     }, 100);
-    document.getElementById('pMicLabel').textContent = 'listening...';
+    document.getElementById('pMicLabel').textContent = 'Listening…';
     document.getElementById('pResult').className = 'practice-result';
+    haptic(40);
   };
   pRec.onresult = (e) => {
     let finalText = '';
@@ -2932,7 +2767,14 @@ function startPracticeMic() {
     stopPracticeMic();
   };
   pRec.onerror = (e) => {
-    const msgs = { 'not-allowed': 'Mic denied — check browser settings', 'no-speech': "Didn't hear anything — try again", 'network': 'Network error', 'aborted': 'Mic busy — try again' };
+    if (e.error === 'no-speech' && !practiceRetried) {
+      practiceRetried = true;
+      document.getElementById('pMicLabel').textContent = "Didn't hear anything — listening again…";
+      stopPracticeMic();
+      setTimeout(() => startPracticeMic(), 350);
+      return;
+    }
+    const msgs = { 'not-allowed': 'Mic denied — check browser settings', 'no-speech': "Didn't hear anything — tap to retry", 'network': 'Network error', 'aborted': 'Mic busy — try again' };
     document.getElementById('pMicLabel').textContent = msgs[e.error] || 'Mic error — tap to retry';
     stopPracticeMic();
   };
@@ -2950,9 +2792,11 @@ function stopPracticeMic() {
   clearInterval(pWaveTimer);
   const btn = document.getElementById('pMicBtn');
   btn.classList.remove('on');
+  btn.setAttribute('aria-pressed', 'false');
   const pWaveEl = document.getElementById('pWave');
   pWaveEl.classList.remove('live');
   pWaveEl.querySelectorAll('.wb').forEach((b,i) => b.style.height = baseH[i] + 'px');
+  haptic(20);
 }
 
 let lastPracticeHeard = '';
@@ -3283,8 +3127,6 @@ window.confirmCorrect = confirmCorrect;
 window.deleteEntry = deleteEntry;
 window.openLearnedModal = openLearnedModal;
 window.closeLearnedModal = closeLearnedModal;
-window.exportJSON = exportJSON;
-window.exportCSV = exportCSV;
 window.clearAll = clearAll;
 window.setLang = setLang;
 window.openLangModal = openLangModal;
@@ -3304,7 +3146,7 @@ window.skipPractice = skipPractice;
 window.setPracticeLevel = setPracticeLevel;
 window.selectBingoCell = selectBingoCell;
 window.newBingoBoard = newBingoBoard;
-window.toggleAutoApply = toggleAutoApply;
+window.setBingoLevel = setBingoLevel;
 </script>
 </body>
 </html>
