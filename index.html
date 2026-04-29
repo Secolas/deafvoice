@@ -685,25 +685,6 @@
     line-height: 1.3;
   }
   .phonetic:empty { display: none; }
-  .pair-phonetic {
-    display: flex; align-items: center; gap: 8px;
-    justify-content: center;
-    font-family: var(--font-mono); font-size: 13px;
-    color: var(--text3); margin: -4px 0 14px;
-  }
-  .pair-phonetic .pp-target { color: var(--accent); font-weight: 700; }
-  .pair-phonetic .pp-sep { opacity: 0.5; font-size: 10px; }
-  .pair-phonetic:empty { display: none; }
-  .pair-word, .pair-contrast {
-    display: inline-block; padding: 2px 10px; border-radius: var(--radius-md);
-  }
-  .pair-word { color: var(--accent); }
-  .pair-contrast { color: var(--text3); font-size: 22px; opacity: 0.75; }
-  .pair-vs {
-    margin: 0 10px; font-size: 13px; font-weight: 800;
-    color: var(--text3); letter-spacing: 0.5px;
-    vertical-align: middle;
-  }
   .mouth-diagrams {
     display: flex; flex-wrap: wrap; gap: 10px;
     margin-top: 10px; justify-content: center;
@@ -1248,7 +1229,6 @@
     <button class="level-tab active" id="lvlWord" data-mode="practice" onclick="setPracticeLevel('word')">Words</button>
     <button class="level-tab" id="lvlPhrase" data-mode="practice" onclick="setPracticeLevel('phrase')">Phrases</button>
     <button class="level-tab" id="lvlSentence" data-mode="practice" onclick="setPracticeLevel('sentence')">Sentences</button>
-    <button class="level-tab" id="lvlPairs" data-mode="games" onclick="setPracticeLevel('pairs')">Pairs</button>
     <button class="level-tab" id="lvlDaily" data-mode="games" onclick="setPracticeLevel('daily')">Daily</button>
     <button class="level-tab" id="lvlBingo" data-mode="games" onclick="setPracticeLevel('bingo')">Bingo</button>
   </div>
@@ -2119,7 +2099,7 @@ function applyPracticeMode(mode) {
   if (mode === 'games') {
     if (title) title.textContent = 'Games';
     if (sub) sub.textContent = 'Low-stakes drills — go at your own pace.';
-    if (!['daily','bingo','pairs'].includes(practiceLevel)) practiceLevel = 'daily';
+    if (!['daily','bingo'].includes(practiceLevel)) practiceLevel = 'daily';
   } else {
     if (title) title.textContent = 'Practice';
     if (sub) sub.textContent = 'Daily drills tuned to your learned corrections.';
@@ -2361,7 +2341,6 @@ const phonetics = {
   'wine':'WYN','fan':'FAN','seat':'SEET','breathe':'BREETH','family':'FAM-uh-lee',
   'weather':'WETH-er','remember':'rih-MEM-ber','important':'im-POR-tunt',
   'beautiful':'BYOO-tih-ful',
-  // minimalPairs words & contrasts
   'tree':'TREE','sink':'SINGK','free':'FREE','dis':'DIS','best':'BEST',
   'berry':'BAIR-ee','long':'LONG','wrong':'RONG','lead':'LEED','read':'REED',
   'chip':'CHIP','share':'SHAYR','sheep':'SHEEP','cheap':'CHEEP','vine':'VYN',
@@ -2425,29 +2404,6 @@ const defaultSentences = [
   'I would like a glass of water','Can I have the check please',
   'Nice to meet you my name is Carlos'
 ];
-const minimalPairs = [
-  { word: 'three', contrast: 'tree',  sound: 'th', focus: 'For "th" put your tongue tip between your teeth and blow.' },
-  { word: 'think', contrast: 'sink',  sound: 'th', focus: 'For "th" tongue goes between the teeth; "s" keeps tongue behind teeth.' },
-  { word: 'free',  contrast: 'three', sound: 'f',  focus: 'For "f" rest upper teeth on lower lip; "th" needs tongue between teeth.' },
-  { word: 'this',  contrast: 'dis',   sound: 'th', focus: 'Voiced "th" — tongue between teeth with gentle vibration.' },
-  { word: 'vest',  contrast: 'best',  sound: 'v',  focus: 'For "v" bite your lower lip lightly; "b" is lips together.' },
-  { word: 'very',  contrast: 'berry', sound: 'v',  focus: 'For "v" lower lip touches upper teeth and vibrates.' },
-  { word: 'light', contrast: 'right', sound: 'l',  focus: 'For "l" tongue tip touches ridge behind upper teeth; for "r" tongue curls back.' },
-  { word: 'long',  contrast: 'wrong', sound: 'l',  focus: 'For "l" tongue tip presses the roof behind teeth.' },
-  { word: 'lead',  contrast: 'read',  sound: 'l',  focus: 'For "l" tongue presses up; for "r" tongue curls back.' },
-  { word: 'ship',  contrast: 'chip',  sound: 'sh', focus: 'For "sh" keep airflow steady; "ch" is a sudden click.' },
-  { word: 'share', contrast: 'chair', sound: 'sh', focus: 'Push lips forward and release steady air for "sh".' },
-  { word: 'sheep', contrast: 'cheap', sound: 'sh', focus: 'Lips forward, continuous air for "sh".' },
-  { word: 'wine',  contrast: 'vine',  sound: 'w',  focus: 'Round lips for "w"; for "v" bite lower lip.' },
-  { word: 'west',  contrast: 'vest',  sound: 'w',  focus: 'For "w" lips round like a kiss; no tooth-lip contact.' },
-  { word: 'bat',   contrast: 'pat',   sound: 'b',  focus: '"b" vibrates with voice; "p" is a silent puff.' },
-  { word: 'big',   contrast: 'pig',   sound: 'b',  focus: '"b" voiced, "p" unvoiced — both lips together.' },
-  { word: 'fan',   contrast: 'pan',   sound: 'f',  focus: 'For "f" upper teeth rest on lower lip; "p" is lips together.' },
-  { word: 'fat',   contrast: 'pat',   sound: 'f',  focus: 'Teeth on lip for "f"; lips together for "p".' },
-  { word: 'seat',  contrast: 'sheet', sound: 's',  focus: '"s" keeps teeth close; "sh" pushes lips forward.' },
-  { word: 'pen',   contrast: 'pan',   sound: 'e',  focus: 'Short "eh" for pen, open "ah" for pan.' }
-];
-
 // ---- Daily Word ----
 const dailyPool = [
   'three','think','this','that','voice','very','water','what','where','when',
@@ -2681,13 +2637,6 @@ function buildPracticeList() {
   if (practiceLevel === 'bingo') {
     return [];
   }
-  if (practiceLevel === 'pairs') {
-    return minimalPairs.slice().sort((a, b) => {
-      const aM = (practiceProgress[normalize(a.word)] || 0) >= 3 ? 1 : 0;
-      const bM = (practiceProgress[normalize(b.word)] || 0) >= 3 ? 1 : 0;
-      return aM - bM;
-    });
-  }
   const fromLearned = [];
   for (const k of Object.keys(learnedMap)) {
     const m = learnedMap[k];
@@ -2717,8 +2666,6 @@ function initPractice() {
   renderPracticeProgress();
 }
 
-let currentPair = null;
-
 function showPracticeItem() {
   const targetEl = document.getElementById('pTarget');
   const dailyBadge = document.getElementById('dailyBadge');
@@ -2742,7 +2689,6 @@ function showPracticeItem() {
   document.getElementById('bingoLevelDesc').style.display = 'none';
   targetEl.style.display = '';
   if (hearBtn) hearBtn.style.display = '';
-  currentPair = null;
 
   document.getElementById('pLevel').textContent = practiceLevel;
 
@@ -2789,31 +2735,16 @@ function showPracticeItem() {
   }
   const item = practiceList[practiceIndex % practiceList.length];
   const phEl = document.getElementById('pPhonetic');
-  if (practiceLevel === 'pairs' && item && typeof item === 'object') {
-    currentPair = item;
-    targetEl.innerHTML = `<span class="pair-word">${esc(item.word)}</span><span class="pair-vs">vs</span><span class="pair-contrast">${esc(item.contrast)}</span>`;
-    const phWord = getPhonetic(item.word);
-    const phContrast = getPhonetic(item.contrast);
-    if (phWord || phContrast) {
-      phEl.className = 'pair-phonetic';
-      phEl.innerHTML = `<span class="pp-target">${esc(phWord || item.word)}</span><span class="pp-sep">vs</span><span>${esc(phContrast || item.contrast)}</span>`;
-    } else {
-      phEl.className = 'phonetic';
-      phEl.textContent = '';
-    }
-  } else {
-    targetEl.textContent = item;
-    phEl.className = 'phonetic';
-    phEl.textContent = getPhonetic(item);
-  }
-  document.getElementById('pMicLabel').textContent = practiceLevel === 'pairs' ? 'tap mic and say the left word' : 'tap to try saying it';
+  targetEl.textContent = item;
+  phEl.className = 'phonetic';
+  phEl.textContent = getPhonetic(item);
+  document.getElementById('pMicLabel').textContent = 'tap to try saying it';
   updatePracticeStats();
 }
 
 function hearTarget() {
   let text;
   if (practiceLevel === 'bingo') text = bingoSelected !== null ? bingoBoard[bingoSelected] : '';
-  else if (currentPair) text = currentPair.word;
   else text = document.getElementById('pTarget').textContent;
   if (!text || text === '—') return;
   const utt = new SpeechSynthesisUtterance(text);
@@ -2839,8 +2770,6 @@ function startPracticeMic() {
   } else if (practiceLevel === 'daily') {
     if (isMasteredToday()) { document.getElementById('pMicLabel').textContent = '✓ Mastered today! Come back tomorrow.'; return; }
     target = getDailyWord();
-  } else if (currentPair) {
-    target = currentPair.word;
   } else {
     target = document.getElementById('pTarget').textContent;
   }
@@ -3025,14 +2954,6 @@ function renderPracticeTips(target, heard, pass) {
   if (pass) { tipsEl.innerHTML = ''; return; }
   const tips = [];
   const sounds = new Set();
-  if (currentPair) {
-    const hn = normalize(heard);
-    const cn = normalize(currentPair.contrast);
-    if (isMatch(heard, currentPair.contrast) || similarity(hn, cn) >= 0.8) {
-      tips.push('Engine heard "' + currentPair.contrast + '" instead of "' + currentPair.word + '". ' + currentPair.focus);
-    }
-    if (currentPair.sound) sounds.add(currentPair.sound);
-  }
   tips.push(...analyzePronunciation(target, heard));
   detectProblemSounds(target, heard).forEach(s => sounds.add(s));
   if (!tips.length && !sounds.size) { tipsEl.innerHTML = ''; return; }
@@ -3192,7 +3113,7 @@ function skipPractice() {
 
 function setPracticeLevel(level) {
   practiceLevel = level;
-  ['Word','Phrase','Sentence','Pairs','Daily','Bingo'].forEach(k => {
+  ['Word','Phrase','Sentence','Daily','Bingo'].forEach(k => {
     const el = document.getElementById('lvl' + k);
     if (!el) return;
     const active = level === k.toLowerCase();
