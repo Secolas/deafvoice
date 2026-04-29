@@ -70,7 +70,7 @@
     color: var(--text);
     min-height: 100vh;
     padding-top: env(safe-area-inset-top);
-    padding-bottom: calc(env(safe-area-inset-bottom) + 92px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 120px);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
@@ -1072,10 +1072,17 @@
     cursor: pointer; -webkit-tap-highlight-color: transparent;
     display: flex; align-items: center; justify-content: space-between;
     user-select: none; gap: 6px;
+    padding: 10px 12px; margin: 14px 0 8px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    min-height: 40px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px; font-size: 12px;
   }
   .collapsible-hd::after {
     content: '▾'; transition: transform 0.2s; opacity: 0.55;
-    font-size: 12px; line-height: 1;
+    font-size: 14px; line-height: 1;
   }
   .collapsible-hd.collapsed::after { transform: rotate(-90deg); }
   .collapsible.collapsed { display: none !important; }
@@ -1511,6 +1518,11 @@ function toggleCollapsible(id) {
   const collapsed = el.classList.toggle('collapsed');
   if (hd) hd.classList.toggle('collapsed', collapsed);
   try { localStorage.setItem('cv_coll_' + id, collapsed ? '1' : '0'); } catch (e) {}
+  // After collapse, the header may end up under the bottom nav.
+  // Scroll it back into view in the upper half so it stays tappable.
+  if (collapsed && hd) {
+    setTimeout(() => hd.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  }
 }
 
 function applyCollapsibleState() {
