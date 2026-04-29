@@ -1940,6 +1940,27 @@ function normalize(s) {
   return (s || '').toLowerCase().trim().replace(/[.,!?;:"']+$/g, '').replace(/\s+/g, ' ');
 }
 
+// Speech-recognition often returns synonyms ("ok" for "okay", "yeah" for "yes")
+// that are string-unequal. Canonicalise for match-checking only — does not
+// affect what gets stored in entries or learnedMap.
+const wordEquivalents = {
+  'ok': 'okay', 'k': 'okay', 'okay': 'okay',
+  'yeah': 'yes', 'yep': 'yes', 'ya': 'yes', 'yup': 'yes', 'yes': 'yes',
+  'nope': 'no', 'nah': 'no', 'no': 'no',
+  'thanks': 'thank you', 'thx': 'thank you', 'thank you': 'thank you',
+  'gonna': 'going to', 'wanna': 'want to', "i'm": 'i am', "i'd": 'i would',
+  "can't": 'cannot', "won't": 'will not', "don't": 'do not'
+};
+
+function canonicalize(s) {
+  const n = normalize(s).replace(/[.,!?;:"']+/g, '');
+  return wordEquivalents[n] || n;
+}
+
+function isMatch(a, b) {
+  return canonicalize(a) === canonicalize(b);
+}
+
 function learnPattern(fromText, toText) {
   const key = normalize(fromText);
   if (!key || !toText) return;
@@ -2595,7 +2616,7 @@ function checkBingoResult(heard) {
   if (bingoSelected === null || bingoWon) return;
   const target = bingoBoard[bingoSelected];
   const ratio = similarity(normalize(heard), normalize(target));
-  if (normalize(heard) === normalize(target) || ratio >= 0.8) {
+  if (isMatch(heard, target) || ratio >= 0.8) {
     bingoMarks[bingoSelected] = true;
     const wonRow = checkBingoWin();
     bingoSelected = null;
@@ -2898,7 +2919,7 @@ function checkPracticeResult(heard, target) {
   }
   const hNorm = normalize(heard);
   const tNorm = normalize(target);
-  const pass = hNorm === tNorm;
+  const pass = isMatch(heard, target);
   const ratio = similarity(hNorm, tNorm);
   const accepted = pass || ratio >= 0.8;
 
@@ -2993,7 +3014,7 @@ function renderPracticeTips(target, heard, pass) {
   if (currentPair) {
     const hn = normalize(heard);
     const cn = normalize(currentPair.contrast);
-    if (hn === cn || similarity(hn, cn) >= 0.8) {
+    if (isMatch(heard, currentPair.contrast) || similarity(hn, cn) >= 0.8) {
       tips.push('Engine heard "' + currentPair.contrast + '" instead of "' + currentPair.word + '". ' + currentPair.focus);
     }
     if (currentPair.sound) sounds.add(currentPair.sound);
