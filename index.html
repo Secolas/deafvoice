@@ -980,11 +980,11 @@
     box-shadow: var(--shadow-float);
   }
   .nav-btn {
-    flex: 1;
+    flex: 1; min-width: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 2px;
-    padding: 7px 4px;
-    font-size: 10px; font-weight: 800; letter-spacing: 0.3px;
+    padding: 7px 2px;
+    font-size: 9px; font-weight: 800; letter-spacing: 0;
     border: none; border-radius: 999px;
     background: transparent; color: var(--text3);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
@@ -992,6 +992,8 @@
     font-family: var(--font-body);
     text-transform: uppercase;
     min-height: 46px;
+    white-space: nowrap;
+    overflow: hidden;
   }
   .nav-btn svg {
     width: 20px; height: 20px;
@@ -1065,6 +1067,19 @@
   .no-support strong { color: var(--text); font-weight: 700; }
 
   /* PROFILE CARD (Settings) */
+  /* COLLAPSIBLE SECTIONS */
+  .collapsible-hd {
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; justify-content: space-between;
+    user-select: none; gap: 6px;
+  }
+  .collapsible-hd::after {
+    content: '▾'; transition: transform 0.2s; opacity: 0.55;
+    font-size: 12px; line-height: 1;
+  }
+  .collapsible-hd.collapsed::after { transform: rotate(-90deg); }
+  .collapsible.collapsed { display: none !important; }
+
   /* UTILITIES */
   [hidden] { display: none !important; }
 </style>
@@ -1135,8 +1150,8 @@
     </div>
 
     <div id="entriesWrap" style="display:none">
-      <div class="section-hd">Phrases — type what you actually said</div>
-      <div class="entries" id="entriesList"></div>
+      <div class="section-hd collapsible-hd" id="entriesList-hd" onclick="toggleCollapsible('entriesList')"><span>Phrases — type what you actually said</span></div>
+      <div class="entries collapsible" id="entriesList"></div>
     </div>
 
   </div>
@@ -1265,8 +1280,8 @@
     <button class="practice-nav-btn primary" onclick="nextPractice()">Next →</button>
   </div>
 
-  <div class="section-hd" id="pProgressHd">Progress</div>
-  <div class="progress-list" id="pProgressList"></div>
+  <div class="section-hd collapsible-hd" id="pProgressList-hd" onclick="toggleCollapsible('pProgressList')"><span>Progress</span></div>
+  <div class="progress-list collapsible" id="pProgressList"></div>
 
 </section>
 
@@ -1308,8 +1323,8 @@
     </div>
   </div>
 
-  <div class="section-hd">Recent corrections</div>
-  <div class="entries" id="progRecent"></div>
+  <div class="section-hd collapsible-hd" id="progRecent-hd" onclick="toggleCollapsible('progRecent')"><span>Recent corrections</span></div>
+  <div class="entries collapsible" id="progRecent"></div>
 </section>
 
 <!-- ============ SETTINGS (NEW) ============ -->
@@ -1468,6 +1483,7 @@ const baseH = [6,11,18,8,22,13,7,16,10];
 renderAll();
 loadFromCloud();
 loadLearnedFromCloud();
+applyCollapsibleState();
 
 function animWave() {
   waveTimer = setInterval(() => {
@@ -1486,6 +1502,28 @@ function toggleListen() {
 
 function haptic(ms) {
   try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
+}
+
+function toggleCollapsible(id) {
+  const el = document.getElementById(id);
+  const hd = document.getElementById(id + '-hd');
+  if (!el) return;
+  const collapsed = el.classList.toggle('collapsed');
+  if (hd) hd.classList.toggle('collapsed', collapsed);
+  try { localStorage.setItem('cv_coll_' + id, collapsed ? '1' : '0'); } catch (e) {}
+}
+
+function applyCollapsibleState() {
+  ['entriesList', 'pProgressList', 'progRecent'].forEach(id => {
+    try {
+      if (localStorage.getItem('cv_coll_' + id) === '1') {
+        const el = document.getElementById(id);
+        const hd = document.getElementById(id + '-hd');
+        if (el) el.classList.add('collapsed');
+        if (hd) hd.classList.add('collapsed');
+      }
+    } catch (e) {}
+  });
 }
 
 function startListen() {
@@ -2039,6 +2077,12 @@ function applyPracticeMode(mode) {
 }
 
 function switchTab(tab) {
+  // Stop any active mic before changing views — prevents the mic
+  // from staying live in the background after navigating away.
+  if (listening) stopListen();
+  if (tListening) stopTranslateMic();
+  if (pListening) stopPracticeMic();
+  try { speechSynthesis.cancel(); } catch (e) {}
   const viewTab = tab === 'games' ? 'practice' : tab;
   const views = ['record','translate','practice','progress','settings'];
   views.forEach(v => {
@@ -2276,7 +2320,33 @@ const phonetics = {
   'thank you very much':'THANGK yoo VEH-ree MUCH','where is the':'WAYR iz thuh',
   'how much is':'how MUCH iz','i need help':'eye NEED HELP',
   'nice to meet you':'NYS too MEET yoo','excuse me please':'ek-SKYOOZ mee PLEEZ',
-  'i would like':'eye WOOD lyk','can i have':'kan eye HAV','what time is it':'WUT TYM iz it'
+  'i would like':'eye WOOD lyk','can i have':'kan eye HAV','what time is it':'WUT TYM iz it',
+  // common short / glue words for sentences
+  'a':'uh','an':'AN','and':'and','i':'EYE','of':'uv','to':'too','too':'TOO','two':'TOO',
+  'is':'IZ','it':'IT','my':'MY','me':'MEE','we':'WEE','you':'YOO','your':'YOR',
+  'he':'HEE','she':'SHEE','they':'THAY','do':'DOO','can':'KAN','am':'AM',
+  'who':'HOO','how':'HOW','out':'OWT','up':'UP','down':'DOWN','in':'IN','on':'AHN',
+  'for':'FOR','at':'AT','by':'BY','be':'BEE','so':'SOH','if':'IF',
+  // bingo level 1 starter
+  'go':'GOH','see':'SEE','good':'GOOD','okay':'oh-KAY','thanks':'THANGKS','say':'SAY',
+  'eat':'EET','sit':'SIT','run':'RUN','make':'MAYK','give':'GIV','here':'HEER','there':'THAYR',
+  'now':'NOW',
+  // bingo level 2/3 extras
+  'father':'FAH-ther','brother':'BRUH-ther','let':'LET','one':'WUN','more':'MOR',
+  'come':'KUM','stand':'STAND','time':'TYM','wait':'WAYT','have':'HAV','does':'DUZ',
+  'store':'STOR','close':'KLOHZ','glass':'GLAS','check':'CHEK','meet':'MEET','much':'MUCH',
+  'try':'TRY','well':'WEL','nice':'NYS','day':'DAY','hospital':'HOS-pih-tul',
+  'nearest':'NEER-ist','appointment':'uh-POYNT-munt','make an appointment':'MAYK an uh-POYNT-munt',
+  'carlos':'KAR-los',
+  // bingo level 4 phrases
+  'go now':'GOH NOW','wait here':'WAYT HEER','help me':'HELP mee','see you':'SEE yoo',
+  'very nice':'VEH-ree NYS','good day':'GOOD DAY','right here':'RYT HEER',
+  'this place':'THIS PLAYS','no thanks':'NOH THANGKS','please go':'PLEEZ GOH',
+  'very good':'VEH-ree GOOD','come here':'KUM HEER','what time':'WUT TYM',
+  'where is':'WAYR iz','i need':'eye NEED','very well':'VEH-ree WEL',
+  'see this':'SEE THIS','let me':'LET mee','one more':'WUN MOR',
+  'sit down':'SIT DOWN','stand up':'STAND UP','my name':'my NAYM','i want':'eye WUNT',
+  'you are':'YOO AR'
 };
 
 function getPhonetic(text) {
@@ -3147,6 +3217,7 @@ window.setPracticeLevel = setPracticeLevel;
 window.selectBingoCell = selectBingoCell;
 window.newBingoBoard = newBingoBoard;
 window.setBingoLevel = setBingoLevel;
+window.toggleCollapsible = toggleCollapsible;
 </script>
 </body>
 </html>
