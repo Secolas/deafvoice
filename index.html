@@ -837,6 +837,17 @@
     background: var(--green-bg); color: var(--green);
     text-transform: uppercase;
   }
+  .games-stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    padding: 12px 0 4px;
+  }
+  .games-stat {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 10px 6px;
+  }
+  .games-stat-n { font-size: 20px; font-weight: 800; color: var(--accent); }
+  .games-stat-l { font-size: 10px; color: var(--text2); text-align: center; }
 
   /* PROGRESS VIEW */
   .hero-card {
@@ -1295,7 +1306,7 @@
     <button class="practice-nav-btn primary" onclick="nextPractice()">Next →</button>
   </div>
 
-  <div class="section-hd collapsible-hd" id="pProgressList-hd" onclick="toggleCollapsible('pProgressList')"><span>Progress</span></div>
+  <div class="section-hd collapsible-hd" id="pProgressList-hd" onclick="toggleCollapsible('pProgressList')"><span id="pProgressHd">Progress</span></div>
   <div class="progress-list collapsible" id="pProgressList"></div>
 
 </section>
@@ -2618,11 +2629,14 @@ function checkBingoResult(heard) {
   const ratio = similarity(normalize(heard), normalize(target));
   if (isMatch(heard, target) || ratio >= 0.8) {
     bingoMarks[bingoSelected] = true;
+    practiceProgress[normalize(target)] = (practiceProgress[normalize(target)] || 0) + 1;
+    savePracticeProgress();
     const wonRow = checkBingoWin();
     bingoSelected = null;
     if (wonRow) bingoWon = true;
     saveBingoState();
     renderBingoBoard();
+    renderPracticeProgress();
     if (wonRow) {
       if (!bingoCompleted.includes(bingoLevel)) bingoCompleted.push(bingoLevel);
       saveBingoState();
@@ -3189,23 +3203,53 @@ function setPracticeLevel(level) {
 
 function renderPracticeProgress() {
   const list = document.getElementById('pProgressList');
-  const items = practiceList.slice(0, 20);
-  document.getElementById('pProgressHd').textContent = `Progress — ${Object.values(practiceProgress).filter(v => v >= 3).length} mastered`;
-  list.innerHTML = items.map(item => {
-    const key = normalize(item);
-    const count = practiceProgress[key] || 0;
-    const mastered = count >= 3;
-    const streakDots = Array.from({length: 3}, (_, i) => i < count ?
-      '<span style="color:var(--green);">●</span>' :
-      '<span style="color:var(--border2);">○</span>'
-    ).join(' ');
-    return `<div class="progress-item">
-      <span class="progress-word">${esc(item)}</span>
-      ${mastered ? '<span class="mastered-badge">mastered</span>' : ''}
-      <span class="progress-streak">${streakDots}</span>
-      <button class="practice-hear" onclick="hearWord('${esc(item).replace(/'/g, "\\'")}')" style="padding:4px 10px; font-size:11px;">🔊</button>
+  const mastered = Object.values(practiceProgress).filter(v => v >= 3).length;
+  const totalTracked = Object.keys(practiceProgress).length;
+
+  // Build the display items: all tracked words, plus current level words not yet tracked
+  const trackedKeys = Object.keys(practiceProgress);
+  const currentItems = practiceList.slice(0, 20).map(normalize);
+  const allKeys = Array.from(new Set([...trackedKeys, ...currentItems]));
+  allKeys.sort((a, b) => (practiceProgress[b] || 0) - (practiceProgress[a] || 0));
+
+  let html = '';
+
+  if (practiceMode === 'games') {
+    const bingoDone = bingoCompleted.length;
+    const bingoTotal = bingoLevels.length;
+    const ds = dailyState.streak || 0;
+    const bestStreak = parseInt(localStorage.getItem('cv_best_streak') || '0', 10);
+    html += `<div class="games-stats-row">
+      <div class="games-stat"><span class="games-stat-n">${bingoDone}/${bingoTotal}</span><span class="games-stat-l">Bingo levels</span></div>
+      <div class="games-stat"><span class="games-stat-n">${ds}</span><span class="games-stat-l">Daily streak</span></div>
+      <div class="games-stat"><span class="games-stat-n">${bestStreak}</span><span class="games-stat-l">Best streak</span></div>
+      <div class="games-stat"><span class="games-stat-n">${mastered}</span><span class="games-stat-l">Words mastered</span></div>
     </div>`;
-  }).join('');
+    document.getElementById('pProgressHd').textContent = `Progress — ${bingoDone}/${bingoTotal} bingo levels · ${mastered} mastered`;
+  } else {
+    document.getElementById('pProgressHd').textContent = `Progress — ${mastered} mastered`;
+  }
+
+  if (allKeys.length === 0) {
+    html += `<div style="padding:16px; color:var(--text2); font-size:14px; text-align:center;">No practice data yet — start speaking!</div>`;
+  } else {
+    html += allKeys.slice(0, 30).map(key => {
+      const count = practiceProgress[key] || 0;
+      const masteredWord = count >= 3;
+      const dots = Array.from({length: 3}, (_, i) => i < count
+        ? '<span style="color:var(--green);">●</span>'
+        : '<span style="color:var(--border2);">○</span>'
+      ).join(' ');
+      return `<div class="progress-item">
+        <span class="progress-word">${esc(key)}</span>
+        ${masteredWord ? '<span class="mastered-badge">mastered</span>' : ''}
+        <span class="progress-streak">${dots}</span>
+        <button class="practice-hear" onclick="hearWord('${esc(key).replace(/'/g, "\\'")}')" style="padding:4px 10px; font-size:11px;">🔊</button>
+      </div>`;
+    }).join('');
+  }
+
+  list.innerHTML = html;
 }
 
 function hearWord(word) {
